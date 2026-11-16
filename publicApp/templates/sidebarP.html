@@ -1,0 +1,62 @@
+{% load static %}
+
+<aside class="admin-sidebar" id="mainSidebar" aria-label="Menu prinsipál">
+    <div class="sidebar-header">
+        <a class="brand-mark" href="{% url 'mapa_view' %}">
+            <span class="brand-icon">
+                <i class="bi bi-geo-alt-fill"></i>
+            </span>
+            <span class="brand-copy">
+                <span class="brand-title">GIS Manufahi</span>
+                <span class="brand-subtitle">Fatin Turizmu</span>
+            </span>
+        </a>
+        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Taka menu">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <nav>
+        <p class="sidebar-section-label">Esplora</p>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{% url 'mapa_view' %}"
+                   {% if request.resolver_match.url_name == 'mapa_view' %}class="active" aria-current="page"{% endif %}>
+                    <i class="fas fa-home"></i> <span>Pájina inisiál</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'mapa_view' %}#mapa-section" data-section="mapa-section">
+                    <i class="fas fa-map"></i> <span>Mapa interativu</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'mapa_view' %}#cards-section" data-section="cards-section">
+                    <i class="fas fa-list"></i> <span>Lista fatin</span>
+                </a>
+            </li>
+        </ul>
+
+        <p class="sidebar-section-label">Konta</p>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/login/">
+                    <i class="fas fa-user-circle"></i> <span>Login</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="flag-stripe" aria-hidden="true"></div>
+        <small>&copy; 2026 Turismu Timor-Leste</small>
+    </div>
+</aside>
+
+<!-- Overlay ba mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Botaun toggle (hatudu de'it iha mobile) -->
+<button type="button" class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Loke menu">
+    <i class="fas fa-bars"></i>
+</button>

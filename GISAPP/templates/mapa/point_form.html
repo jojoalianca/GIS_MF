@@ -1,0 +1,890 @@
+<!-- templates/mapa/point_form.html -->
+{% extends "main/layout.html" %}
+{% load static %}
+
+{% block extra_css %}
+<!-- Font Inter (Modern Sans-Serif) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Leaflet & Fullscreen CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.css" />
+<style>
+    /* ---------- MODERN AGENCY FORM (ARCGIS) ---------- */
+    :root {
+        --primary: #0a5c2e;
+        --primary-light: #e8f3e9;
+        --primary-dark: #064523;
+        --secondary: #f8f9fc;
+        --border: #e2e8f0;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+        --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.02);
+        --radius: 20px;
+        --radius-sm: 12px;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f9fbfd;
+        color: var(--text);
+    }
+
+    .modern-wrapper {
+        padding: 24px 32px;
+    }
+
+    /* CARD UNIFIKADU */
+    .modern-card {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .modern-card:hover {
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.02);
+    }
+
+    .modern-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modern-header h5 {
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .modern-header i {
+        color: var(--primary);
+        font-size: 1.3rem;
+        background: var(--primary-light);
+        padding: 8px;
+        border-radius: 12px;
+    }
+
+    .modern-body {
+        padding: 24px;
+    }
+
+    /* Floating Labels */
+    .form-floating {
+        margin-bottom: 20px;
+    }
+
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: white;
+        padding: 1rem 0.75rem;
+        height: auto;
+        min-height: 62px;
+        transition: border 0.2s, box-shadow 0.2s;
+        font-size: 1rem;
+    }
+
+    .form-floating > .form-control:focus,
+    .form-floating > .form-select:focus {
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(10,92,46,0.08);
+    }
+
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+        color: var(--text-light);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    /* Grid 2 koluna */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+    }
+
+    /* Botões modernus */
+    .btn-modern {
+        border: none;
+        border-radius: 40px;
+        padding: 12px 24px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-modern {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(10,92,46,0.2);
+    }
+
+    .btn-primary-modern:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(10,92,46,0.25);
+    }
+
+    .btn-outline-modern {
+        background: white;
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+
+    .btn-outline-modern:hover {
+        background: #f8fafc;
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Koordenada actions */
+    .coordinate-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .coordinate-actions .btn-modern {
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* Mapa Container */
+    .map-container {
+        position: relative;
+        width: 100%;
+        height: 350px;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+
+    #map, #largeMap {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Kontrolu mapa */
+    .map-controls {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .map-control-btn {
+        background: white;
+        border: none;
+        border-radius: 30px;
+        padding: 8px 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        color: var(--text);
+    }
+
+    .map-control-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* Image preview */
+    .image-preview-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .image-preview-item {
+        position: relative;
+        width: 110px;
+        height: 110px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+    }
+
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview-item .remove-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .image-preview-item .remove-btn:hover {
+        background: #c53030;
+        transform: scale(1.1);
+    }
+
+    /* Existing images */
+    .existing-images {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 12px;
+    }
+
+    .image-card {
+        width: 120px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .image-card img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .image-card img:hover {
+        transform: scale(1.03);
+    }
+
+    .image-card .card-body {
+        padding: 8px;
+        background: white;
+    }
+
+    /* Helper text */
+    .helper-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    /* Alert modern */
+    .alert-modern {
+        border-radius: var(--radius-sm);
+        border: none;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+        border-left: 6px solid;
+    }
+
+    .alert-success {
+        background: #e8f3e9;
+        color: var(--primary-dark);
+        border-left-color: var(--primary);
+    }
+
+    .alert-error {
+        background: #feeaea;
+        color: #a12b2b;
+        border-left-color: #c53030;
+    }
+
+    .alert-info {
+        background: #e6f3ff;
+        color: var(--primary-dark);
+        border-left-color: var(--primary);
+    }
+
+    /* Fullscreen fix */
+    .map-container.fullscreen {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 9999;
+        border: none;
+        border-radius: 0;
+    }
+    .map-container.fullscreen #map {
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .modern-wrapper { padding: 16px; }
+        .grid-2 { grid-template-columns: 1fr; }
+        .modern-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .coordinate-actions { flex-direction: column; }
+        .map-container { height: 300px; }
+    }
+
+    @media (max-width: 768px) {
+        .btn-modern { width: 100%; justify-content: center; }
+        .modern-body { padding: 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="modern-wrapper">
+    <div class="row g-4">
+        <!-- COLUNA ESQUERDA – FORMULÁRIU -->
+        <div class="col-xl-7 col-lg-7">
+            <div class="modern-card">
+                <div class="modern-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h5 class="mb-0">{% if form.instance.id %}Edita Ponto{% else %}Adisiona Ponto Foun{% endif %}</h5>
+                    </div>
+                    <a href="{% if form.instance.id and form.instance.Maps %}{% url 'mapa-detail' form.instance.Maps.id %}{% else %}{% url 'mapa-list' %}{% endif %}" 
+                       class="btn-modern btn-outline-modern">
+                        <i class="fas fa-arrow-left"></i> Fila
+                    </a>
+                </div>
+                <div class="modern-body">
+                    <!-- Mensagens Django -->
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert-modern {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% endif %} mb-4">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="pointForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Mapa Referénsia -->
+                        <div class="form-floating">
+                            <select name="Maps" id="id_Maps" class="form-select" required>
+                                <option value="" {% if not form.instance.Maps %}selected{% endif %}></option>
+                                {% for mapa in mapas %}
+                                <option value="{{ mapa.id }}" 
+                                        {% if form.instance.Maps.id == mapa.id or request.GET.mapa == mapa.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ mapa.naran }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <label for="id_Maps">
+                                <i class="fas fa-map-marked-alt me-2"></i> Mapa Turístiku *
+                            </label>
+                        </div>
+
+                        <!-- Koordenada -->
+                        <div class="grid-2 mt-3">
+                            <div class="form-floating">
+                                <input type="text" name="latitude" id="id_latitude" 
+                                       class="form-control" placeholder="Latitude"
+                                       value="{{ form.instance.latitude|default:'' }}" required>
+                                <label for="id_latitude">
+                                    <i class="fas fa-arrow-up me-2"></i> Latitude *
+                                </label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="text" name="longitude" id="id_longitude" 
+                                       class="form-control" placeholder="Longitude"
+                                       value="{{ form.instance.longitude|default:'' }}" required>
+                                <label for="id_longitude">
+                                    <i class="fas fa-arrow-right me-2"></i> Longitude *
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="coordinate-actions">
+                            <button type="button" class="btn-modern btn-outline-modern" onclick="getCurrentLocation()" id="btnLocation">
+                                <i class="fas fa-location-dot"></i> Pozisaun Atual
+                            </button>
+                            <button type="button" class="btn-modern btn-outline-modern" onclick="selectOnMap()">
+                                <i class="fas fa-hand-pointer"></i> Hili iha Mapa
+                            </button>
+                        </div>
+                        <div class="helper-text mt-2">
+                            <i class="fas fa-info-circle"></i> Klik iha mapa ka utiliza butaun atu hili koordenada.
+                        </div>
+
+                        <!-- Fotos -->
+                        <div class="mt-4">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="fas fa-images" style="color: var(--primary); font-size: 1.2rem;"></i>
+                                <h6 class="mb-0 fw-semibold">Fotos</h6>
+                            </div>
+                            <div class="form-floating">
+                                <input type="file" name="images" id="id_images" 
+                                       class="form-control" multiple accept="image/*">
+                                <label for="id_images">
+                                    <i class="fas fa-cloud-upload-alt me-2"></i> Upload Fotos
+                                </label>
+                            </div>
+                            <div class="helper-text mt-1">
+                                <i class="fas fa-lightbulb"></i> Upload foto barak. Uza Ctrl+klika atu hili barak.
+                            </div>
+                            
+                            <!-- Preview upload foun -->
+                            <div id="imagePreview" class="image-preview-grid"></div>
+                            
+                            <!-- Imagens existentes -->
+                            {% if form.instance.id and form.instance.images.all %}
+                            <div class="mt-4">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fas fa-photo-video" style="color: var(--primary);"></i>
+                                    <span class="fw-semibold">Fotos Upload tiha ona</span>
+                                </div>
+                                <div id="existingImages" class="existing-images">
+                                    {% for image in form.instance.images.all %}
+                                    <div class="image-card" id="image-{{ image.id }}">
+                                        <img src="{{ image.image.url }}" 
+                                             alt="Foto" 
+                                             onclick="viewImage('{{ image.image.url }}')">
+                                        <div class="card-body">
+                                            <button type="button" class="btn-modern btn-outline-modern w-100" 
+                                                    style="padding: 6px 12px; font-size: 0.8rem;"
+                                                    onclick="deleteImage({{ image.id }})">
+                                                <i class="fas fa-trash"></i> Apaga
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Ações -->
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3" style="border-top: 1px solid var(--border);">
+                            <button type="button" class="btn-modern btn-outline-modern" onclick="resetForm()">
+                                <i class="fas fa-undo-alt"></i> Reset
+                            </button>
+                            <div class="d-flex gap-2">
+                                <a href="{% if form.instance.id and form.instance.Maps %}{% url 'mapa-detail' form.instance.Maps.id %}{% else %}{% url 'mapa-list' %}{% endif %}" 
+                                   class="btn-modern btn-outline-modern">
+                                    <i class="fas fa-times"></i> Kansela
+                                </a>
+                                <button type="submit" class="btn-modern btn-primary-modern" id="submitBtn">
+                                    <i class="fas fa-save"></i> 
+                                    {% if form.instance.id %}Atualiza{% else %}Rejista{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA – KARTAUN MAPA NO INFORMASAUN (ARCGIS) -->
+        <div class="col-xl-5 col-lg-5 d-flex flex-column gap-4">
+            <!-- KARTAUN MAPA HO ARCGIS -->
+            <div class="modern-card">
+                <div class="modern-header">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="fas fa-map"></i>
+                        <span>Seleksaun Lokalizasaun (ArcGIS)</span>
+                    </h5>
+                </div>
+                <div class="modern-body">
+                    <div class="map-container" id="mapWrapper">
+                        <div id="map"></div>
+                        <div class="map-controls">
+                            <button id="toggleSatellite" class="map-control-btn">
+                                <i class="fas fa-satellite"></i> Satélite
+                            </button>
+                            <button id="fullscreenMap" class="map-control-btn">
+                                <i class="fas fa-expand"></i> Fullscreen
+                            </button>
+                        </div>
+                    </div>
+                    <div class="helper-text mt-3">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <span>Klik iha mapa atu hili lokalizasaun.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KARTAUN INFORMASAUN -->
+            <div class="modern-card">
+                <div class="modern-header">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Informasaun</span>
+                    </h5>
+                </div>
+                <div class="modern-body">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <i class="fas fa-lightbulb" style="color: var(--primary); font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Dikasaun:</strong>
+                            <p class="text-muted small mt-1">Mapa uza teknolojia ArcGIS – topográfiku profisionál. Klik iha mapa ka utiliza butaun atu hetan koordenada.</p>
+                        </div>
+                    </div>
+                    <div class="alert-modern alert-info">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Atensaun:</strong> Garante katak latitude no longitude laos null.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Mapa Boot -->
+<div class="modal fade" id="mapModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--radius); overflow: hidden;">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 16px 24px;">
+                <h5 class="modal-title d-flex align-items-center gap-2">
+                    <i class="fas fa-map-marked-alt" style="color: var(--primary);"></i>
+                    Hili Lokalizasaun iha Mapa ArcGIS
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="height: 500px;">
+                <div id="largeMap" style="width: 100%; height: 100%;"></div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--border); padding: 16px 24px;">
+                <button type="button" class="btn-modern btn-outline-modern" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Taka
+                </button>
+                <button type="button" class="btn-modern btn-primary-modern" data-bs-dismiss="modal">
+                    <i class="fas fa-check"></i> Konfirma
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Hare Foto -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--radius);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                <h5 class="modal-title">Foto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <img id="modalImage" src="" class="img-fluid" alt="" style="max-height: 400px; border-radius: 12px;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- jQuery (Bootstrap dependency) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Leaflet & Fullscreen JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.fullscreen@2.4.0/Control.FullScreen.js"></script>
+
+<script>
+// ================ ARCGIS BASEMAPS ================
+var arcgisTopo = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © <a href="https://www.esri.com">Esri</a> — Source: Esri, HERE, Garmin, FAO, NOAA, USGS',
+    maxZoom: 18,
+    subdomains: 'abcd'
+});
+
+var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP',
+    maxZoom: 18
+});
+
+var baseLayers = {
+    "Topográfiku": arcgisTopo,
+    "Satélite": satelliteLayer
+};
+
+// ================ VARIÁVEIS GLOBAIS ================
+var map, largeMap, marker;
+var latitudeInput = document.getElementById('id_latitude');
+var longitudeInput = document.getElementById('id_longitude');
+
+// ================ INISIALIZASAUN MAPA PRINCIPAL ================
+function initMap() {
+    map = L.map('map', {
+        layers: [arcgisTopo],  // Default: ArcGIS Topographic
+        zoomControl: true,
+        zoomControlPosition: 'topleft'
+    }).setView([-8.5585, 125.5785], 10);
+    
+    // Layer switcher
+    L.control.layers(baseLayers).addTo(map);
+    
+    // Klik iha mapa
+    map.on('click', function(e) {
+        updateMarker(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Marker se iha koordenada
+    if (latitudeInput.value && longitudeInput.value) {
+        var lat = parseFloat(latitudeInput.value);
+        var lng = parseFloat(longitudeInput.value);
+        if (!isNaN(lat) && !isNaN(lng)) updateMarker(lat, lng);
+    }
+    
+    // Kontrolu satélite no fullscreen
+    setupMapControls();
+}
+
+// ================ KONTROLU MAPA (SATÉLITE, FULLSCREEN) ================
+function setupMapControls() {
+    // Toggle satélite
+    document.getElementById('toggleSatellite').addEventListener('click', function() {
+        var current = map.hasLayer(satelliteLayer);
+        if (current) {
+            map.removeLayer(satelliteLayer);
+            map.addLayer(arcgisTopo);
+            this.innerHTML = '<i class="fas fa-satellite"></i> Satélite';
+        } else {
+            map.removeLayer(arcgisTopo);
+            map.addLayer(satelliteLayer);
+            this.innerHTML = '<i class="fas fa-map"></i> Topográfiku';
+        }
+    });
+
+    // Fullscreen
+    const mapWrapper = document.getElementById('mapWrapper');
+    const fullscreenBtn = document.getElementById('fullscreenMap');
+
+    fullscreenBtn.addEventListener('click', function() {
+        if (!document.fullscreenElement) {
+            if (mapWrapper.requestFullscreen) mapWrapper.requestFullscreen();
+            else if (mapWrapper.webkitRequestFullscreen) mapWrapper.webkitRequestFullscreen();
+            else if (mapWrapper.msRequestFullscreen) mapWrapper.msRequestFullscreen();
+            mapWrapper.classList.add('fullscreen');
+            fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Normal';
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+            mapWrapper.classList.remove('fullscreen');
+            fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+        }
+    });
+
+    function handleFullscreenChange() {
+        if (!document.fullscreenElement) {
+            mapWrapper.classList.remove('fullscreen');
+            fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i> Fullscreen';
+        } else {
+            mapWrapper.classList.add('fullscreen');
+            fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i> Normal';
+        }
+        setTimeout(() => map.invalidateSize(), 100);
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+}
+
+// ================ ATUALIZA MARKER NO CAMPU ================
+function updateMarker(lat, lng) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lng]).addTo(map);
+    map.setView([lat, lng], 15);
+    marker.bindPopup(`<b>Ponto Selecionadu</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`).openPopup();
+    latitudeInput.value = lat.toFixed(6);
+    longitudeInput.value = lng.toFixed(6);
+}
+
+// ================ LOKALIZASAUN ATUAL ================
+function getCurrentLocation() {
+    var btn = document.getElementById('btnLocation');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Hela...';
+    btn.disabled = true;
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                updateMarker(position.coords.latitude, position.coords.longitude);
+                resetButton(btn);
+            },
+            function(error) { 
+                alert('La bele hetan lokalizasaun: ' + error.message); 
+                resetButton(btn); 
+            }
+        );
+    } else { 
+        alert('Browser la suporta geolokalisasaun.'); 
+        resetButton(btn); 
+    }
+}
+
+function resetButton(btn) {
+    btn.innerHTML = '<i class="fas fa-location-dot"></i> Pozisaun Atual';
+    btn.disabled = false;
+}
+
+// ================ HILI IHA MAPA (MODAL BOOT) ================
+function selectOnMap() {
+    $('#mapModal').modal('show');
+    setTimeout(function() {
+        if (!largeMap) {
+            largeMap = L.map('largeMap', {
+                layers: [arcgisTopo],
+                fullscreenControl: true,
+                fullscreenControlOptions: { position: 'topleft' }
+            }).setView([-8.5585, 125.5785], 10);
+            
+            L.control.layers(baseLayers).addTo(largeMap);
+            
+            var largeMarker;
+            largeMap.on('click', function(e) {
+                if (largeMarker) largeMap.removeLayer(largeMarker);
+                largeMarker = L.marker(e.latlng).addTo(largeMap);
+                largeMarker.bindPopup(`<b>Selecionadu</b><br>Lat: ${e.latlng.lat.toFixed(6)}<br>Lng: ${e.latlng.lng.toFixed(6)}`).openPopup();
+                
+                $('#mapModal').off('hidden.bs.modal').one('hidden.bs.modal', function() {
+                    updateMarker(e.latlng.lat, e.latlng.lng);
+                });
+            });
+        } else { 
+            largeMap.invalidateSize(); 
+        }
+    }, 200);
+}
+
+// ================ PREVIEW UPLOAD FOTOS ================
+document.getElementById('id_images').addEventListener('change', function(e) {
+    var preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    for (var i = 0; i < this.files.length; i++) {
+        var file = this.files[i];
+        var reader = new FileReader();
+        reader.onload = (function(file) {
+            return function(e) {
+                var div = document.createElement('div');
+                div.className = 'image-preview-item';
+                div.innerHTML = `<img src="${e.target.result}" alt="${file.name}"><div class="remove-btn" onclick="this.parentElement.remove()">×</div>`;
+                preview.appendChild(div);
+            };
+        })(file);
+        reader.readAsDataURL(file);
+    }
+});
+
+// ================ APAGA IMAJEN EXISTENTE ================
+function deleteImage(imageId) {
+    if (confirm('Ita boot hakarak apaga foto ida ne\'e?')) {
+        fetch(`{% url 'point-image-delete' 0 %}`.replace('0', imageId), {
+            method: 'DELETE',
+            headers: { 
+                'X-CSRFToken': getCookie('csrftoken'), 
+                'Content-Type': 'application/json' 
+            }
+        })
+        .then(response => response.json())
+        .then(data => { 
+            if (data.success) 
+                document.getElementById(`image-${imageId}`).remove(); 
+            else 
+                alert('Erru durante apaga foto.'); 
+        })
+        .catch(error => { 
+            console.error('Erru:', error); 
+            alert('Erru durante apaga foto.'); 
+        });
+    }
+}
+
+// ================ HARE FOTO BOOT ================
+function viewImage(url) { 
+    document.getElementById('modalImage').src = url; 
+    $('#imageModal').modal('show'); 
+}
+
+// ================ RESET FORM ================
+function resetForm() {
+    if (confirm('Ita boot hakarak reset formuláriu?')) {
+        document.getElementById('pointForm').reset();
+        if (marker) { 
+            map.removeLayer(marker); 
+            marker = null; 
+        }
+        document.getElementById('imagePreview').innerHTML = '';
+    }
+}
+
+// ================ SUBMISAUN FORM ================
+document.getElementById('pointForm').addEventListener('submit', function(e) {
+    var submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Prosesa...';
+    submitBtn.disabled = true;
+    if (!latitudeInput.value || !longitudeInput.value || !document.getElementById('id_Maps').value) {
+        e.preventDefault();
+        alert('Preciza preenche campo obrigatóriu: Mapa, Latitude, Longitude.');
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Rejista';
+        submitBtn.disabled = false;
+    }
+});
+
+// ================ CSRF TOKEN ================
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// ================ INISIALIZASAU ================
+$(document).ready(function() {
+    initMap();
+    
+    // Seleciona mapa husi URL parameter
+    var urlParams = new URLSearchParams(window.location.search);
+    var mapaId = urlParams.get('mapa');
+    if (mapaId) document.getElementById('id_Maps').value = mapaId;
+    
+    // Atualiza tamanhu mapa boot bainhira modal hatudu
+    $('#mapModal').on('shown.bs.modal', function() { 
+        if (largeMap) largeMap.invalidateSize(); 
+    });
+});
+</script>
+{% endblock %}

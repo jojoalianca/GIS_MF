@@ -1,0 +1,46 @@
+<!-- ===== TOP HEADER ===== -->
+<header class="top-header">
+    <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+        <span class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+    </button>
+    <a href="/" class="header-brand">
+        <i class="fas fa-map-marked-alt"></i>
+        <span>Turismu TL</span>
+    </a>
+    <div style="flex:1;"></div>
+    <!-- Opsional: badia menu iha direita -->
+    <a href="{% url 'login' %}" style="color: rgba(255,255,255,0.7); font-size: 0.9rem; display: none;" class="d-md-block">
+        <i class="fas fa-user-circle me-1"></i> Login
+    </a>
+</header>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<!-- ===== MAIN SIDEBAR ===== -->
+<aside class="main-sidebar" id="mainSidebar">
+    <div class="sidebar-header">
+        <a href="/" class="brand">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>Turismu TL</span>
+        </a>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <ul class="sidebar-menu">
+        <li><a href="/" class="active"><i class="fas fa-home"></i> Pájina Inisiál</a></li>
+        <li><a href="#mapa-section"><i class="fas fa-map"></i> Mapa Interativu</a></li>
+        <li><a href="#cards-section"><i class="fas fa-list"></i> Lista Mapa</a></li>
+        <li class="divider"></li>
+        <li><a href="/admin/"><i class="fas fa-cog"></i> Administrasaun</a></li>
+        <li><a href="/contact/"><i class="fas fa-envelope"></i> Kontaktu</a></li>
+        <li><a href="{% url 'login' %}"><i class="fas fa-user-circle"></i> Login</a></li>
+    </ul>
+    
+    <div class="sidebar-footer">
+        <small>&copy; 2026 Turismu Timor-Leste</small>
+    </div>
+</aside>

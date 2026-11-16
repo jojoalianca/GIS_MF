@@ -1,0 +1,282 @@
+{% extends "main/layout.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    /* Kór tipu turismu */
+    .badge-relijiozu { background-color: #FF6B6B; color: white; }
+    .badge-kultural { background-color: #4ECDC4; color: white; }
+    .badge-natural { background-color: #45B7D1; color: white; }
+    .badge-istoriku { background-color: #96CEB4; color: white; }
+    .badge-eventura { background-color: #FFEAA7; color: #333; }
+    .badge-ekologiku { background-color: #55EFC4; color: #333; }
+
+    .table > tbody > tr > td {
+        vertical-align: middle;
+    }
+
+    .action-btn {
+        padding: 5px 10px;
+        margin: 0 3px;
+        border-radius: 4px;
+    }
+
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #dee2e6;
+    }
+
+    /* Estilu modal konfirmasaun */
+    .delete-confirm-modal .modal-header {
+        background-color: #dc3545;
+        color: white;
+    }
+    .delete-confirm-modal .close {
+        color: white;
+        opacity: 1;
+    }
+    .map-name-to-confirm {
+        font-weight: 700;
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+ <!-- Mensagens -->
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                <i class="bi {% if message.tags == 'success' %}bi-check-circle{% elif message.tags == 'error' %}bi-x-circle{% else %}bi-info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">
+            <i class="fas fa-map-marked-alt me-2 text-primary"></i>
+            LISTA FATIN TURISMU
+        </h1>
+        <a href="{% url 'mapa-create' %}" class="btn btn-outline-success">
+            <i class="fas fa-plus-circle me-1"></i> REGISTU FATIN FOUN
+        </a>
+    </div>
+
+    <!-- Tabela Mapa sira -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="example" class="table table-hover table-striped dt-responsive nowrap w-100">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Naran</th>
+                            <th>Tipu</th>
+                            <th>Lokasaun</th>
+                            <th>Point</th>
+                            <th>Imajen</th>
+                            <th>Data Registu</th>
+                            <th>Aksaun</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mapa in mapas %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <strong>{{ mapa.naran }}</strong>
+                                {% if mapa.Obs %}
+                                <span class="d-block small text-muted" title="{{ mapa.Obs }}">
+                                    {{ mapa.Obs|truncatechars:30 }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% with tipo=mapa.tipo %}
+                                <span class="badge 
+                                    {% if 'Relijiozu' in tipo %}badge-relijiozu
+                                    {% elif 'Kultural' in tipo %}badge-kultural
+                                    {% elif 'Natural' in tipo %}badge-natural
+                                    {% elif 'Istoriku' in tipo %}badge-istoriku
+                                    {% elif 'Eventura' in tipo %}badge-eventura
+                                    {% elif 'Ekologiku' in tipo %}badge-ekologiku
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ mapa.get_tipo_display }}
+                                </span>
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% if mapa.municipality %}
+                                    {{ mapa.municipality.name }}
+                                    {% if mapa.administrativepost %}
+                                        <br><small>{{ mapa.administrativepost.name }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">La iha</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ mapa.Location.count }}
+                                </span>     
+                            </td>
+                            <td class="text-center">
+                                {% with total_img=mapa.total_images|default:0 %}
+                                <span class="badge bg-{% if total_img > 0 %}success{% else %}secondary{% endif %}">
+                                    <i class="fas fa-camera me-1"></i> {{ total_img }}
+                                </span>
+                                {% endwith %}
+                            </td>
+                            <td>{{ mapa.data_registu|date:"d/m/Y" }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'point-create' %}?mapa={{ mapa.id }}" 
+                                       class="btn btn-success btn-sm">
+                                        <i class="fas fa-plus"></i> Adisiona Point
+                                    </a>
+                                    <a href="{% url 'mapa-detail' mapa.pk %}" 
+                                       class="btn btn-sm btn-primary action-btn" 
+                                       title="Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'mapa-update' mapa.pk %}" 
+                                       class="btn btn-sm btn-warning action-btn"
+                                       title="Edita">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <!-- Botão Delete – Bootstrap 4 trigger -->
+                                    <button type="button" 
+                                            class="btn btn-sm btn-danger action-btn btn-delete"
+                                            data-toggle="modal"
+                                            data-target="#deleteConfirmModal"
+                                            data-url="{% url 'mapa-delete' mapa.pk %}"
+                                            data-naran="{{ mapa.naran }}"
+                                            title="Hamos">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="fas fa-map fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">La iha mapa hodi hatudu.</h5>
+                                <a href="{% url 'mapa-create' %}" class="btn btn-primary mt-3">
+                                    <i class="fas fa-plus-circle"></i> Kria Mapa Foun
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL KONFIRMASA HAMOS MAPA (Bootstrap 4) -->
+<div class="modal fade delete-confirm-modal" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Konfirmasa Hamos Mapa
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="fw-bold">Ita boot hakarak hamos mapa:</p>
+                <p class="text-center fs-5 map-name-to-confirm" id="modalMapName"></p>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Ação ne'e <strong>la bele fila fali</strong>. Ponto turístiku hotu iha mapa ne'e mós sei hamos.
+                </div>
+                <div class="mb-3">
+                    <label for="confirmNameInput" class="form-label">
+                        Hakerek naran mapa atu konfirma:
+                    </label>
+                    <input type="text" class="form-control" id="confirmNameInput" placeholder="Hakerek naran mapa iha ne'e" autocomplete="off">
+                    <div class="form-text text-danger" id="nameMismatchMsg" style="display: none;">
+                        Naran la koose. Keta hakerek sala.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Kansela
+                </button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger" id="confirmDeleteBtn" disabled>
+                        <i class="fas fa-trash me-1"></i> Hamos Permanentemente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Inisializa DataTable
+        $(document).ready( function () {
+        var table = $('#example').removeAttr('width').DataTable( {
+            
+        });
+       } );
+
+        // ---------- DELETE CONFIRMATION MODAL ----------
+        let deleteUrl = '';
+        let mapName = '';
+
+        // Klik iha botão delete – koko dadus ba modal
+        $('.btn-delete').on('click', function () {
+            deleteUrl = $(this).data('url');
+            mapName = $(this).data('naran');
+            $('#modalMapName').text(mapName);
+            $('#deleteForm').attr('action', deleteUrl);
+            
+            // Reset input no disable botão submit
+            $('#confirmNameInput').val('');
+            $('#confirmDeleteBtn').prop('disabled', true);
+            $('#nameMismatchMsg').hide();
+        });
+
+        // Input monitoring – ativa botão deit bainhira naran koose
+        $('#confirmNameInput').on('input', function () {
+            let typedName = $(this).val().trim();
+            if (typedName === mapName) {
+                $('#confirmDeleteBtn').prop('disabled', false);
+                $('#nameMismatchMsg').hide();
+            } else {
+                $('#confirmDeleteBtn').prop('disabled', true);
+                if (typedName.length > 0) {
+                    $('#nameMismatchMsg').show();
+                } else {
+                    $('#nameMismatchMsg').hide();
+                }
+            }
+        });
+
+        // Limpa formulário bainhira modal taka
+        $('#deleteConfirmModal').on('hidden.bs.modal', function () {
+            $('#confirmNameInput').val('');
+            $('#confirmDeleteBtn').prop('disabled', true);
+            $('#nameMismatchMsg').hide();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,269 @@
+/* =========================================================
+   mapa_detail_modern.css  (tau iha static/css/)
+   Token hanesan ho pájina mapa no sidebar.
+   ========================================================= */
+:root {
+    --tl-ink: #12303a;
+    --tl-ink-soft: #4d6670;
+    --tl-teal: #0e5a6b;
+    --tl-teal-dark: #0a3f4c;
+    --tl-red: #c8102e;
+    --tl-yellow: #f2b705;
+    --tl-bg: #f2f6f6;
+    --tl-line: #dbe5e7;
+    --tl-radius: 16px;
+    --tl-radius-sm: 10px;
+    --tl-shadow: 0 1px 2px rgba(10, 63, 76, .06), 0 8px 24px rgba(10, 63, 76, .08);
+}
+
+.detail-page {
+    width: 100%;
+    max-width: none;            /* penuh ba layar */
+    margin: 0;
+    padding: 1.25rem clamp(1rem, 2.5vw, 2.5rem) 3rem;
+}
+
+/* ---------- BREADCRUMB ---------- */
+.breadcrumb-custom {
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .88rem; color: var(--tl-ink-soft);
+    margin-bottom: 1rem;
+}
+.breadcrumb-custom a { color: var(--tl-teal); text-decoration: none; font-weight: 600; }
+.breadcrumb-custom a:hover { text-decoration: underline; }
+
+/* ---------- TÍTULU ---------- */
+.detail-title-block {
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    justify-content: space-between; gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.detail-title-block h1 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+    color: var(--tl-ink);
+    margin: 0 0 .6rem;
+}
+.tipo-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: var(--tl-teal-dark); color: #fff;
+    padding: .35rem .85rem .35rem .45rem;
+    border-radius: 999px;
+    font-size: .8rem; font-weight: 600;
+    margin-bottom: .75rem;
+}
+.tipo-badge__icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--tipo-color, var(--tl-yellow));
+    color: #fff; font-size: .7rem;
+}
+.location-line {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .4rem;
+    color: var(--tl-ink-soft); font-size: .98rem;
+}
+.location-line i { color: var(--tl-red); margin-right: .15rem; }
+.location-line .sep { color: #9bb0b5; }
+.btn-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .6rem 1.1rem;
+    border-radius: 999px;
+    background: #fff; color: var(--tl-teal);
+    border: 1px solid var(--tl-teal);
+    font-weight: 600; font-size: .9rem; text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.btn-back:hover { background: var(--tl-teal); color: #fff; }
+
+/* ---------- KARTAUN ---------- */
+.detail-card {
+    background: #fff;
+    border: 1px solid var(--tl-line);
+    border-radius: var(--tl-radius);
+    box-shadow: var(--tl-shadow);
+    padding: 1.4rem;
+    margin-bottom: 1.25rem;
+}
+.detail-card h2 {
+    display: flex; align-items: center; gap: .6rem;
+    font-size: 1.05rem; font-weight: 700;
+    color: var(--tl-ink);
+    margin: 0 0 1rem;
+}
+.detail-card h2 i { color: var(--tl-teal); }
+.detail-card h2 .count-pill {
+    margin-left: auto;
+    background: var(--tl-bg); color: var(--tl-ink-soft);
+    border-radius: 999px; padding: .1rem .65rem;
+    font-size: .78rem; font-weight: 700;
+}
+.detail-desc { line-height: 1.75; color: var(--tl-ink); margin: 0; max-width: 75ch; }
+.detail-desc--empty { color: #9bb0b5; font-style: italic; }
+
+/* ---------- INFORMASAUN ---------- */
+.dinfo-list { margin: 0; display: grid; gap: 0; }
+.dinfo-list dt, .dinfo-list dd { margin: 0; padding: 0; text-align: left; font-family: inherit; }
+.dinfo-row {
+    background: none !important; border-left: 0 !important; box-shadow: none !important;
+    border-radius: 0 !important; justify-content: start !important;
+    display: grid; grid-template-columns: 22px 1fr; gap: .15rem .75rem;
+    padding: .8rem 0;
+    border-bottom: 1px solid var(--tl-line);
+}
+.dinfo-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.dinfo-row:first-child { padding-top: 0; }
+.dinfo-row > i { grid-row: span 2; color: var(--tl-teal); margin-top: .15rem; text-align: center; }
+.dinfo-label { font-size: .78rem; font-weight: 600; color: var(--tl-ink-soft); margin: 0; }
+.dinfo-value { font-size: .98rem; font-weight: 600; color: var(--tl-ink); margin: 0; word-break: break-word; }
+.coords-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.coords-row code {
+    font-size: .82rem; color: var(--tl-ink); background: var(--tl-bg);
+    padding: .15rem .5rem; border-radius: 6px;
+}
+.btn-copy {
+    border: 1px solid var(--tl-line); background: #fff; color: var(--tl-teal);
+    border-radius: 8px; padding: .15rem .55rem; font-size: .78rem; font-weight: 600;
+}
+.btn-copy:hover { background: var(--tl-bg); }
+
+/* ---------- MAPA ---------- */
+.detail-map-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 440px;
+    background: var(--tl-bg);
+    border: 1px solid var(--tl-line);
+}
+#detail-map { height: 100%; width: 100%; z-index: 1; }
+.detail-map-wrapper.fullscreen {
+    position: fixed !important; inset: 0;
+    width: 100vw !important; height: 100vh !important;
+    z-index: 9999; border-radius: 0; border: 0;
+}
+.detail-map-wrapper.fullscreen #detail-map { height: 100vh; width: 100vw; }
+
+.detail-map-controls {
+    position: absolute; top: 14px; right: 14px; z-index: 1000;
+    display: flex; flex-direction: column; gap: .5rem; align-items: flex-end;
+}
+.detail-map-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: #fff; color: var(--tl-ink);
+    border: 0; border-radius: 999px;
+    padding: .5rem .85rem;
+    font-size: .83rem; font-weight: 600;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .18);
+    transition: background .15s, transform .15s;
+}
+.detail-map-btn:hover { background: var(--tl-bg); transform: translateY(-1px); }
+.detail-map-btn.btn-satellite { background: var(--tl-teal); color: #fff; }
+
+.action-buttons { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem; }
+.action-buttons .btn {
+    flex: 1; min-width: 150px;
+    display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+    padding: .75rem 1.1rem;
+    border-radius: var(--tl-radius-sm);
+    font-weight: 700; font-size: .93rem;
+    border: 2px solid var(--tl-teal);
+    transition: background .15s, color .15s;
+}
+.btn-gps-detail { background: #fff; color: var(--tl-teal); }
+.btn-gps-detail:hover { background: #e3f0f2; color: var(--tl-teal); border-color: var(--tl-teal); }
+.btn-gps-detail.is-ok { background: #e6f4ea; color: #1b6b3a; border-color: #1b6b3a; }
+.btn-route { background: var(--tl-teal); color: #fff; }
+.btn-route:hover { background: var(--tl-teal-dark); border-color: var(--tl-teal-dark); color: #fff; }
+
+.route-info-box {
+    display: none;
+    margin-top: 1rem;
+    background: #eef6f7;
+    border: 1px solid #cfe3e6;
+    border-radius: var(--tl-radius-sm);
+    padding: .4rem 1rem;
+}
+.route-info-box.active { display: block; }
+.route-stat {
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+    padding: .65rem 0;
+    border-bottom: 1px solid #d5e5e8;
+}
+.route-stat:last-child { border-bottom: 0; }
+.route-stat-label { display: flex; align-items: center; gap: .5rem; font-size: .88rem; color: var(--tl-ink-soft); }
+.route-stat-label i { color: var(--tl-teal); width: 16px; text-align: center; }
+.route-stat-value { font-weight: 800; color: var(--tl-teal-dark); }
+
+/* ---------- GALERIA ---------- */
+.gallery-swiper { border-radius: 12px; overflow: hidden; background: var(--tl-bg); }
+.gallery-swiper .swiper-slide img {
+    width: 100%; height: 440px; object-fit: cover; display: block;
+}
+.gallery-swiper .swiper-button-next,
+.gallery-swiper .swiper-button-prev {
+    width: 40px; height: 40px;
+    background: rgba(255, 255, 255, .92);
+    color: var(--tl-teal-dark);
+    border-radius: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .25);
+}
+.gallery-swiper .swiper-button-next::after,
+.gallery-swiper .swiper-button-prev::after { font-size: .95rem; font-weight: 800; }
+.gallery-thumbs { margin-top: .6rem; }
+.gallery-thumbs .swiper-slide {
+    height: 76px; border-radius: 8px; overflow: hidden;
+    opacity: .55; cursor: pointer; transition: opacity .2s;
+}
+.gallery-thumbs .swiper-slide-thumb-active {
+    opacity: 1; outline: 3px solid var(--tl-yellow); outline-offset: -3px;
+}
+.gallery-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ---------- FATIN SELUK ---------- */
+.related-card {
+    display: block; height: 100%;
+    background: #fff;
+    border: 1px solid var(--tl-line);
+    border-radius: 12px; overflow: hidden;
+    text-decoration: none; color: inherit;
+    transition: border-color .2s, box-shadow .2s;
+}
+.related-card:hover { border-color: #b9ccd0; box-shadow: var(--tl-shadow); color: inherit; }
+.related-img {
+    height: 110px;
+    background-size: cover; background-position: center;
+    background-color: var(--tl-bg);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255, 255, 255, .8);
+}
+.related-body { padding: .65rem .75rem .75rem; }
+.related-title {
+    font-size: .88rem; font-weight: 700; color: var(--tl-ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.related-loc { font-size: .76rem; color: var(--tl-ink-soft); margin-top: .15rem; }
+.related-loc i { color: var(--tl-red); margin-right: .2rem; }
+
+/* ---------- ACCESSIBILITY & RESPONSIVE ---------- */
+.detail-map-btn:focus-visible, .action-buttons .btn:focus-visible,
+.btn-back:focus-visible, .btn-copy:focus-visible, .related-card:focus-visible {
+    outline: 3px solid var(--tl-yellow); outline-offset: 2px;
+}
+@media (max-width: 767.98px) {
+    .detail-map-wrapper { height: 330px; }
+    .gallery-swiper .swiper-slide img { height: 260px; }
+    .detail-map-btn .btn-label { display: none; }
+    .detail-map-btn { padding: .6rem .7rem; }
+    .detail-card { padding: 1.1rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+
+/* Layar boot: mapa no galeria sai aas liu */
+@media (min-width: 1400px) {
+    .detail-map-wrapper { height: 540px; }
+    .gallery-swiper .swiper-slide img { height: 540px; }
+    .related-img { height: 130px; }
+}

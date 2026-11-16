@@ -1,0 +1,662 @@
+<!-- templates/mapa/mapa_form.html -->
+{% extends "main/layout.html" %}
+{% load static %}
+
+{% block extra_css %}
+<!-- Font Inter (Modern Sans-Serif) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    /* ---------- MODERN AGENCY FORM ---------- */
+    :root {
+        --primary: #0a5c2e;
+        --primary-light: #e8f3e9;
+        --primary-dark: #064523;
+        --secondary: #f8f9fc;
+        --border: #e2e8f0;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+        --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.02);
+        --radius: 16px;
+        --radius-sm: 8px;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f9fbfd;
+        color: var(--text);
+    }
+
+    .modern-card {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+    }
+
+    .modern-card:hover {
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.02);
+    }
+
+    .modern-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 28px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modern-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .modern-title i {
+        color: var(--primary);
+        font-size: 1.75rem;
+        background: var(--primary-light);
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .modern-title h2 {
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin: 0;
+        color: var(--text);
+        letter-spacing: -0.01em;
+    }
+
+    .back-btn {
+        background: white;
+        color: var(--text-light);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: 10px 20px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .back-btn:hover {
+        background: #f8fafc;
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .modern-body {
+        padding: 32px 28px;
+    }
+
+    /* Section Divider */
+    .form-section {
+        margin-bottom: 32px;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .section-title i {
+        color: var(--primary);
+        font-size: 1.1rem;
+        background: var(--primary-light);
+        padding: 6px;
+        border-radius: 10px;
+    }
+
+    /* Floating Labels Refinadas */
+    .form-floating {
+        margin-bottom: 20px;
+    }
+
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: #ffffff;
+        padding: 1rem 0.75rem;
+        height: auto;
+        min-height: 60px;
+        transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+        font-size: 1rem;
+    }
+
+    .form-floating > .form-control:focus,
+    .form-floating > .form-select:focus {
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(10,92,46,0.08);
+    }
+
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+        color: var(--text-light);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    /* Select modern */
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px 12px;
+    }
+
+    /* Grid responsivu */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    /* Textarea */
+    textarea.form-control {
+        min-height: 140px;
+        resize: vertical;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: white;
+        padding: 16px 20px;
+        font-size: 1rem;
+    }
+
+    textarea.form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(10,92,46,0.08);
+    }
+
+    .observacao-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 12px;
+    }
+
+    .observacao-label i {
+        color: var(--primary);
+    }
+
+    /* Ações */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-modern {
+        border: none;
+        border-radius: 40px;
+        padding: 12px 28px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-modern {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 10px rgba(10,92,46,0.2);
+    }
+
+    .btn-primary-modern:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(10,92,46,0.25);
+    }
+
+    .btn-secondary-modern {
+        background: white;
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary-modern:hover {
+        background: #f8fafc;
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    /* Alert modern */
+    .alert-modern {
+        border-radius: var(--radius-sm);
+        border: none;
+        padding: 16px 20px;
+        margin-bottom: 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 500;
+        border-left: 6px solid;
+    }
+
+    .alert-success {
+        background: #e8f3e9;
+        color: var(--primary-dark);
+        border-left-color: var(--primary);
+    }
+
+    .alert-error {
+        background: #feeaea;
+        color: #a12b2b;
+        border-left-color: #c53030;
+    }
+
+    /* Validação */
+    .is-invalid {
+        border-color: #c53030 !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23c53030' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.553.553 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 20px 20px;
+    }
+
+    .invalid-feedback {
+        display: block;
+        color: #c53030;
+        font-size: 0.85rem;
+        margin-top: 6px;
+        font-weight: 500;
+    }
+
+    /* Loading spinner */
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .grid-2 {
+            grid-template-columns: 1fr;
+        }
+        .modern-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+        .form-actions .btn-modern {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+            <!-- CARD MODERN -->
+            <div class="modern-card">
+                <!-- HEADER -->
+                <div class="modern-header">
+                    <div class="modern-title">
+                        <i class="fas fa-{% if mapa.id %}pencil-alt{% else %}plus-circle{% endif %}"></i>
+                        <h2>{% if mapa.id %}Edita Mapa{% else %}Kria Mapa Foun{% endif %}</h2>
+                    </div>
+                    <a href="{% if mapa.id %}{% url 'mapa-detail' mapa.id %}{% else %}{% url 'mapa-list' %}{% endif %}" 
+                       class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Fila
+                    </a>
+                </div>
+
+                <!-- BODY -->
+                <div class="modern-body">
+                    <!-- MESSAGES DJANGO -->
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert-modern {% if message.tags == 'success' %}alert-success{% elif message.tags == 'error' %}alert-error{% endif %}">
+                            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="mapaForm" autocomplete="off">
+                        {% csrf_token %}
+
+                        <!-- SEÇÃO 1: INFORMAÇÕES BÁSICAS -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Informasaun Bázika</span>
+                            </div>
+                            <div class="grid-2">
+                                <!-- Naran Mapa -->
+                                <div class="form-floating">
+                                    <input type="text" name="naran" id="naran" 
+                                           class="form-control" 
+                                           placeholder="Naran Mapa"
+                                           value="{{ mapa.naran|default:'' }}"
+                                           required>
+                                    <label for="naran">
+                                        <i class="fas fa-map me-2"></i> Naran Mapa *
+                                    </label>
+                                    <div id="naranError" class="invalid-feedback" style="display: none;"></div>
+                                </div>
+
+                                <!-- Tipu Turismu -->
+                                <div class="form-floating">
+                                    <select name="tipo" id="tipo" class="form-select" required>
+                                        <option value="" {% if not mapa.tipo %}selected{% endif %}></option>
+                                        {% for value, label in TIPO %}
+                                        <option value="{{ value }}" 
+                                                {% if mapa.tipo == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <label for="tipo">
+                                        <i class="fas fa-tag me-2"></i> Tipu Turismu *
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO 2: DIVIZAUN ADMINISTRATIVA -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="fas fa-map-pin"></i>
+                                <span>Divizaun Administrativa</span>
+                            </div>
+                            
+                            <!-- Município -->
+                            <div class="form-floating mb-3">
+                                <select name="municipality" id="municipality" class="form-select">
+                                    <option value="" {% if not mapa.municipality %}selected{% endif %}></option>
+                                    {% for mun in municipalities %}
+                                    <option value="{{ mun.id }}" 
+                                            {% if mapa.municipality.id == mun.id %}selected{% endif %}>
+                                        {{ mun.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <label for="municipality">
+                                    <i class="fas fa-city me-2"></i> Município
+                                </label>
+                            </div>
+
+                            <!-- Postu Administrativu -->
+                            <div class="form-floating mb-3">
+                                <select name="administrativepost" id="administrativepost" class="form-select">
+                                    <option value="" {% if not mapa.administrativepost %}selected{% endif %}></option>
+                                    {% if administrativeposts %}
+                                        {% for post in administrativeposts %}
+                                        <option value="{{ post.id }}" 
+                                                {% if mapa.administrativepost.id == post.id %}selected{% endif %}>
+                                            {{ post.name }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <label for="administrativepost">
+                                    <i class="fas fa-building me-2"></i> Postu Administrativu
+                                </label>
+                            </div>
+
+                            <!-- Suku -->
+                            <div class="form-floating mb-3">
+                                <select name="village" id="village" class="form-select">
+                                    <option value="" {% if not mapa.village %}selected{% endif %}></option>
+                                    {% if villages %}
+                                        {% for v in villages %}
+                                        <option value="{{ v.id }}" 
+                                                {% if mapa.village.id == v.id %}selected{% endif %}>
+                                            {{ v.name }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <label for="village">
+                                    <i class="fas fa-home me-2"></i> Suku
+                                </label>
+                            </div>
+
+                            <!-- Aldeia -->
+                            <div class="form-floating mb-3">
+                                <select name="aldeia" id="aldeia" class="form-select">
+                                    <option value="" {% if not mapa.aldeia %}selected{% endif %}></option>
+                                    {% if aldeias %}
+                                        {% for a in aldeias %}
+                                        <option value="{{ a.id }}" 
+                                                {% if mapa.aldeia.id == a.id %}selected{% endif %}>
+                                            {{ a.name }}
+                                        </option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <label for="aldeia">
+                                    <i class="fas fa-tree me-2"></i> Aldeia
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- SEÇÃO 3: OBSERVASAUN -->
+                        <div class="form-section">
+                            <div class="section-title">
+                                <i class="fas fa-file-alt"></i>
+                                <span>Observasaun</span>
+                            </div>
+                            <div class="mb-2">
+                                <textarea name="Obs" id="Obs" class="form-control" 
+                                          placeholder="Hatama deskrisaun, informasaun adisional, ka nota kona-ba fatin ne'e...">{{ mapa.Obs|default:'' }}</textarea>
+                                <div class="small text-muted mt-2">
+                                    <i class="fas fa-info-circle me-1"></i> Informasaun adisional kona-ba fatin turístiku.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AÇÕES -->
+                        <div class="form-actions">
+                            <button type="reset" class="btn-modern btn-secondary-modern">
+                                <i class="fas fa-undo-alt"></i> Reset
+                            </button>
+                            <a href="{% if mapa.id %}{% url 'mapa-detail' mapa.id %}{% else %}{% url 'mapa-list' %}{% endif %}" 
+                               class="btn-modern btn-secondary-modern">
+                                <i class="fas fa-times"></i> Kansela
+                            </a>
+                            <button type="submit" class="btn-modern btn-primary-modern">
+                                <i class="fas fa-save"></i> 
+                                {% if mapa.id %}Atualiza{% else %}Kria{% endif %} Mapa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // ================ DEPENDENT DROPDOWNS (AJAX) ================
+    function setLoading(selectElement, placeholder) {
+        selectElement.html(`<option value="">${placeholder}...</option>`);
+        selectElement.prop('disabled', true);
+    }
+
+    function resetLoading(selectElement, placeholder) {
+        selectElement.html(`<option value="">${placeholder}</option>`);
+        selectElement.prop('disabled', false);
+    }
+
+    // 1. MUNICÍPIO → POSTUS
+    $('#municipality').change(function() {
+        var municipalityId = $(this).val();
+        var $post = $('#administrativepost');
+        var $village = $('#village');
+        var $aldeia = $('#aldeia');
+
+        if (municipalityId) {
+            setLoading($post, 'Carregando postus');
+            $village.html('<option value="">Hili Suku</option>');
+            $aldeia.html('<option value="">Hili Aldeia</option>');
+
+            $.ajax({
+                url: '{% url "load_administrativeposts" %}',
+                data: { 'municipality_id': municipalityId },
+                success: function(data) {
+                    resetLoading($post, 'Hili Postu Administrativu');
+                    $.each(data, function(key, value) {
+                        $post.append(`<option value="${value.id}">${value.name}</option>`);
+                    });
+                },
+                error: function() {
+                    resetLoading($post, 'Hili Postu Administrativu');
+                    $post.append('<option value="">Error loading</option>');
+                }
+            });
+        } else {
+            resetLoading($post, 'Hili Postu Administrativu');
+            $village.html('<option value="">Hili Suku</option>');
+            $aldeia.html('<option value="">Hili Aldeia</option>');
+        }
+    });
+
+    // 2. POSTU → SUKU
+    $('#administrativepost').change(function() {
+        var postId = $(this).val();
+        var $village = $('#village');
+        var $aldeia = $('#aldeia');
+
+        if (postId) {
+            setLoading($village, 'Carregando suku');
+            $aldeia.html('<option value="">Hili Aldeia</option>');
+
+            $.ajax({
+                url: '{% url "load_villages" %}',
+                data: { 'administrativepost_id': postId },
+                success: function(data) {
+                    resetLoading($village, 'Hili Suku');
+                    $.each(data, function(key, value) {
+                        $village.append(`<option value="${value.id}">${value.name}</option>`);
+                    });
+                },
+                error: function() {
+                    resetLoading($village, 'Hili Suku');
+                    $village.append('<option value="">Error loading</option>');
+                }
+            });
+        } else {
+            resetLoading($village, 'Hili Suku');
+            $aldeia.html('<option value="">Hili Aldeia</option>');
+        }
+    });
+
+    // 3. SUKU → ALDEIA
+    $('#village').change(function() {
+        var villageId = $(this).val();
+        var $aldeia = $('#aldeia');
+
+        if (villageId) {
+            setLoading($aldeia, 'Carregando aldeia');
+
+            $.ajax({
+                url: '{% url "load_aldeias" %}',
+                data: { 'village_id': villageId },
+                success: function(data) {
+                    resetLoading($aldeia, 'Hili Aldeia');
+                    $.each(data, function(key, value) {
+                        $aldeia.append(`<option value="${value.id}">${value.name}</option>`);
+                    });
+                },
+                error: function() {
+                    resetLoading($aldeia, 'Hili Aldeia');
+                    $aldeia.append('<option value="">Error loading</option>');
+                }
+            });
+        } else {
+            resetLoading($aldeia, 'Hili Aldeia');
+        }
+    });
+
+    // ================ VALIDASA NARAN UNIK ================
+    $('#naran').on('blur', function() {
+        var naran = $(this).val().trim();
+        var mapaId = '{{ mapa.id|default:"" }}';
+        var $errorDiv = $('#naranError');
+        var $input = $(this);
+
+        if (naran.length > 2) {
+            $.ajax({
+                url: '{% url "check-map-name" %}',
+                data: {
+                    'naran': naran,
+                    'mapa_id': mapaId
+                },
+                success: function(data) {
+                    if (data.exists) {
+                        $errorDiv.text('Naran mapa ida ne\'e ona iha sistema.').show();
+                        $input.addClass('is-invalid');
+                    } else {
+                        $errorDiv.text('').hide();
+                        $input.removeClass('is-invalid');
+                    }
+                }
+            });
+        } else {
+            $errorDiv.text('').hide();
+            $input.removeClass('is-invalid');
+        }
+    });
+
+    // ================ PREVENE ENVIO DUPLU ================
+    var formSubmitted = false;
+    $('#mapaForm').on('submit', function(e) {
+        if (formSubmitted) {
+            e.preventDefault();
+            return false;
+        }
+        formSubmitted = true;
+        var $btn = $(this).find('button[type="submit"]');
+        $btn.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Prosesa...').prop('disabled', true);
+        return true;
+    });
+
+    // ================ RESET BOTAUN ================
+    $('button[type="reset"]').on('click', function() {
+        setTimeout(function() {
+            $('#administrativepost').html('<option value="">Hili Postu Administrativu</option>');
+            $('#village').html('<option value="">Hili Suku</option>');
+            $('#aldeia').html('<option value="">Hili Aldeia</option>');
+        }, 10);
+    });
+});
+</script>
+{% endblock %}

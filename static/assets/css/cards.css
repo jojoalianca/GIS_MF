@@ -1,0 +1,172 @@
+/* ===== CARDS SECTION - FACEBOOK STYLE ===== */
+.cards-section {
+    padding: 100px 0;
+    background-color: var(--fb-bg);
+}
+
+/* Modern Card */
+.cards-section .modern-card {
+    background: var(--fb-card);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--fb-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(0,0,0,0.04);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cards-section .modern-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--fb-shadow-hover);
+}
+
+/* Card Header */
+.cards-section .card-header {
+    background: var(--fb-card);
+    border-bottom: 1px solid #f0f2f5;
+    padding: 0.5rem 0.75rem !important;
+}
+
+/* Slideshow Container - 16:9 */
+.cards-section .card-slideshow-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    background: #f0f2f5;
+    overflow: hidden;
+}
+
+.cards-section .horizontal-slideshow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.cards-section .swiper-slide-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f2f5;
+}
+
+.cards-section .card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.cards-section .no-images {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+}
+
+/* Swiper Navigation */
+.cards-section .swiper-button-next-card,
+.cards-section .swiper-button-prev-card {
+    width: 30px;
+    height: 30px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 50%;
+    color: white;
+    transition: all 0.2s;
+}
+
+.cards-section .swiper-button-next-card:after,
+.cards-section .swiper-button-prev-card:after {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.cards-section .swiper-button-next-card:hover,
+.cards-section .swiper-button-prev-card:hover {
+    background: rgba(0,0,0,0.8);
+    transform: scale(1.05);
+}
+
+.cards-section .swiper-pagination-bullet {
+    background: rgba(255,255,255,0.7);
+    opacity: 1;
+    width: 8px;
+    height: 8px;
+    border: 1px solid rgba(0,0,0,0.2);
+}
+
+.cards-section .swiper-pagination-bullet-active {
+    background: var(--secondary-color);
+    transform: scale(1.2);
+}
+
+/* Card Body */
+.cards-section .card-body {
+    padding: 0.5rem;
+}
+
+/* Card Footer */
+.cards-section .card-footer {
+    background: var(--fb-card);
+    border-top: 1px solid #f0f2f5;
+    padding: 0.5rem 0.75rem;
+}
+
+/* Action Buttons */
+.cards-section .action-btn {
+    transition: all 0.2s;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.5rem;
+}
+
+.cards-section .view-details {
+    background: transparent;
+    border: 1px solid var(--gray-medium);
+    color: var(--primary-color);
+}
+
+.cards-section .view-details:hover {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+
+.cards-section .view-map {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+}
+
+.cards-section .view-map:hover {
+    background: var(--primary-dark) !important;
+    color: white !important;
+}
+
+/* Type Icon */
+.type-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 991.98px) {
+    .cards-section { padding: 70px 0; }
+}
+
+@media (max-width: 576px) {
+    .cards-section .btn span { display: none; }
+    .cards-section .btn i { margin-right: 0 !important; }
+    .cards-section .card-title { font-size: 0.95rem; }
+}

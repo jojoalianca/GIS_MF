@@ -1,0 +1,272 @@
+<!-- mapa/mapa_detail.html -->
+{% extends "main/layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Botones de navegación -->
+    <div class="d-flex justify-content-between mb-4">
+        <a href="{% url 'mapa-list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Fila ba Lista Mapa
+        </a>
+        <div>
+            <button class="btn btn-success" onclick="window.print()">
+                <i class="bi bi-printer"></i> Imprime
+            </button>
+            <a href="{% url 'mapa-dashboard' %}" class="btn btn-info">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Cabecera del Mapa -->
+    <div class="card mb-4 shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">{{ mapa.naran }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Tipo:</th>
+                            <td>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ mapa.get_tipo_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Data Registu:</th>
+                            <td>{{ mapa.data_registu|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Município:</th>
+                            <td>{{ mapa.municipality|default:"La iha" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Postu Administrativu:</th>
+                            <td>{{ mapa.administrativepost|default:"La iha" }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="40%">Suku:</th>
+                            <td>{{ mapa.village|default:"La iha" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Aldeia:</th>
+                            <td>{{ mapa.aldeia|default:"La iha" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Pontos:</th>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    {{ mapa.Location.count }} Pontu(s)
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total Imajen:</th>
+                            <td>
+                                {% with total_images=0 %}
+                                    {% for ponto in mapa.Location.all %}
+                                        {% for imagem in ponto.images.all %}
+                                            {% with total_images=total_images|add:1 %}
+                                            {% endwith %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {% with total_images=total_images %}
+                                        <span class="badge bg-info">{{ total_images }} Imajen(s)</span>
+                                    {% endwith %}
+                                {% endwith %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Observaciones -->
+            <div class="mt-4">
+                <h5><i class="bi bi-chat-text"></i> Observasaun</h5>
+                <div class="border rounded p-3 bg-light">
+                    {{ mapa.Obs|default:"La iha observasaun."|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Pontos -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0"><i class="bi bi-geo-alt"></i> Lista Pontos</h4>
+        </div>
+        <div class="card-body">
+            {% if mapa.Location.all %}
+                <div class="row">
+                    {% for ponto in mapa.Location.all %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="mb-0">Ponto {{ forloop.counter }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>
+                                    <strong><i class="bi bi-geo"></i> Koordenada:</strong><br>
+                                    Latitude: <code>{{ ponto.latitude|default:"La iha" }}</code><br>
+                                    Longitude: <code>{{ ponto.longitude|default:"La iha" }}</code>
+                                </p>
+                                
+                                <!-- Imágenes del Punto -->
+                                {% if ponto.images.all %}
+                                <div class="mt-3">
+                                    <h6><i class="bi bi-images"></i> Imajen sira ({{ ponto.images.count }})</h6>
+                                    <div class="row">
+                                        {% for imagem in ponto.images.all %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="border rounded p-2">
+                                                <img src="{{ imagem.image.url }}" 
+                                                     class="img-fluid rounded" 
+                                                     alt="{{ imagem.description|default:'Imajen' }}"
+                                                     style="max-height: 150px; width: 100%; object-fit: cover;">
+                                                {% if imagem.description %}
+                                                <p class="mt-2 small text-muted mb-0">
+                                                    <i class="bi bi-card-text"></i> {{ imagem.description }}
+                                                </p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-light">
+                                    <i class="bi bi-image"></i> La iha imajen iha ne'e.
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <!-- Enlace para ver en Google Maps -->
+                                {% if ponto.latitude and ponto.longitude %}
+                                <a href="https://www.google.com/maps?q={{ ponto.latitude }},{{ ponto.longitude }}" 
+                                   target="_blank" 
+                                   class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-google"></i> Google Maps
+                                </a>
+                                {% endif %}
+                                
+                                <!-- Botón para mostrar Popup -->
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#popupModal{{ ponto.id }}">
+                                    <i class="bi bi-eye"></i> Hatudu Popup
+                                </button>
+                                
+                                <!-- Modal para Popup -->
+                                <div class="modal fade" id="popupModal{{ ponto.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Popup Content</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div id="popupContent{{ ponto.id }}">
+                                                    <!-- O conteúdo será carregado via JavaScript ou diretamente -->
+                                                    {{ ponto.popupContent|safe }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    La iha ponto rejistu ba mapa ne'e.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Mapa Interativo (se hay coordenadas) -->
+    {% with mapa.Location.all as pontos %}
+        {% for ponto in pontos %}
+            {% if forloop.first and ponto.latitude and ponto.longitude %}
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-map"></i> Mapa Interativu</h4>
+                </div>
+                <div class="card-body">
+                    <div id="map" style="height: 400px; border-radius: 8px;"></div>
+                    <div class="mt-2 text-center text-muted small">
+                        <i class="bi bi-info-circle"></i> Klik iha marker atu hare detalla.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- JavaScript para el Mapa (Leaflet) -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Inicializar mapa
+                    var map = L.map('map').setView([{{ ponto.latitude }}, {{ ponto.longitude }}], 15);
+                    
+                    // Añadir capa de OpenStreetMap
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(map);
+                    
+                    // Añadir marcador para cada punto
+                    {% for p in pontos %}
+                        {% if p.latitude and p.longitude %}
+                        var marker{{ p.id }} = L.marker([{{ p.latitude }}, {{ p.longitude }}]).addTo(map);
+                        
+                        // Contenido del popup
+                        marker{{ p.id }}.bindPopup(`
+                            <div style="max-width: 300px;">
+                                <h5>{{ p.Maps.naran }}</h5>
+                                <p>{{ p.Maps.tipo }}</p>
+                                {% for foto in p.images.all %}
+                                    <img src="{{ foto.image.url }}" style="max-width:200px; display:block; margin-bottom:10px;"><br>
+                                {% empty %}
+                                    <p>La iha foto.</p>
+                                {% endfor %}
+                            </div>
+                        `);
+                        {% endif %}
+                    {% endfor %}
+                    
+                    // Ajustar vista para incluir todos los marcadores
+                    {% with pontos_com_coordenadas=pontos|slice:":1" %}
+                    {% if pontos_com_coordenadas|length > 1 %}
+                    var group = new L.featureGroup([
+                        {% for p in pontos %}
+                            {% if p.latitude and p.longitude %}
+                            L.marker([{{ p.latitude }}, {{ p.longitude }}]),
+                            {% endif %}
+                        {% endfor %}
+                    ]);
+                    map.fitBounds(group.getBounds().pad(0.1));
+                    {% endif %}
+                    {% endwith %}
+                });
+            </script>
+            <!-- Incluir Leaflet CSS y JS -->
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <style>
+                #map { z-index: 1; }
+                .leaflet-popup-content { max-height: 300px; overflow-y: auto; }
+            </style>
+            {% endif %}
+        {% endfor %}
+    {% endwith %}
+</div>
+{% endblock %}

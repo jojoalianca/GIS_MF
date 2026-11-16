@@ -1,0 +1,10 @@
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from users.decorators import allowed_users 
+
+@login_required()
+def index(request): 
+	context = {
+		}
+	return render(request, 'home/index.html',context)
+

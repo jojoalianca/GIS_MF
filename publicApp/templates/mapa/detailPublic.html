@@ -1,0 +1,653 @@
+{% extends "public_base.html" %}
+{% load static %}
+
+{% block title %}{{ mapa.naran }} · GIS-MANUFAHI{% endblock %}
+{% block page_title %}{{ mapa.naran }}{% endblock %}
+{% block page_subtitle %}Detallu fatin turizmu{% endblock %}
+{% block main_container_class %}p-0{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS ona iha public_base.html — la presiza load fali -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link href="{% static 'css/mapa_detail_modern.css' %}" rel="stylesheet">
+{% endblock %}
+
+
+{% block content %}
+<div class="detail-page">
+
+    <!-- BREADCRUMB -->
+    <nav class="breadcrumb-custom" aria-label="Breadcrumb">
+        <a href="{% url 'mapa_view' %}"><i class="fas fa-map"></i> Mapa</a>
+        <span aria-hidden="true">/</span>
+        <span>{{ mapa.naran }}</span>
+    </nav>
+
+    <!-- TÍTULU -->
+    <div class="detail-title-block">
+        <div>
+            <span class="tipo-badge">
+                <span class="tipo-badge__icon" id="tipo-badge-icon">
+                    <i class="fas
+                        {% with t=mapa.tipo|cut:" " %}{% if t == 'TurismoRelijiozu' or t == 'TurismuRelijiozu' %}fa-church{% elif t == 'TurismuKultural' %}fa-landmark{% elif t == 'TurismuNatural' %}fa-mountain{% elif t == 'TurismuIstoriku' %}fa-monument{% elif t == 'TurismuEventura' %}fa-hiking{% else %}fa-leaf{% endif %}{% endwith %}"></i>
+                </span>
+                {{ mapa.tipo|default:"Turizmu" }}
+            </span>
+
+            <h1>{{ mapa.naran }}</h1>
+
+            <div class="location-line">
+                <i class="fas fa-map-marker-alt"></i>
+                {% if mapa.municipality %}
+                    <span>{{ mapa.municipality.name }}</span>
+                    {% if mapa.administrativepost %}<span class="sep">›</span><span>{{ mapa.administrativepost.name }}</span>{% endif %}
+                    {% if mapa.village %}<span class="sep">›</span><span>{{ mapa.village.name }}</span>{% endif %}
+                    {% if mapa.aldeia %}<span class="sep">›</span><span>{{ mapa.aldeia.name }}</span>{% endif %}
+                {% else %}
+                    <span>Lokalizasaun la rejista</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{% url 'mapa_view' %}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Fila ba mapa
+        </a>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ===================================================== -->
+        <!-- KOLUNA KARUK                                           -->
+        <!-- ===================================================== -->
+        <div class="col-lg-8">
+
+            <!-- DESKRISAUN -->
+            <section class="detail-card">
+                <h2><i class="fas fa-circle-info"></i> Deskrisaun</h2>
+                {% if mapa.Obs %}
+                <p class="detail-desc">{{ mapa.Obs }}</p>
+                {% else %}
+                <p class="detail-desc detail-desc--empty">La iha deskrisaun disponível.</p>
+                {% endif %}
+            </section>
+
+            <!-- MAPA -->
+            {% if first_point %}
+            <section class="detail-card">
+                <h2><i class="fas fa-map-location-dot"></i> Lokalizasaun</h2>
+
+                <div class="detail-map-wrapper" id="detail-map-wrapper">
+                    <div id="detail-map"
+                         data-lat="{{ first_point.latitude }}"
+                         data-lng="{{ first_point.longitude }}"
+                         data-name="{{ mapa.naran|escapejs }}"
+                         data-tipo="{{ mapa.tipo|escapejs }}"></div>
+
+                    <div class="detail-map-controls">
+                        <button type="button" class="detail-map-btn" id="detail-satellite-btn">
+                            <i class="fas fa-satellite"></i>
+                            <span class="btn-label">Satélite</span>
+                        </button>
+                        <button type="button" class="detail-map-btn" id="detail-fullscreen-btn">
+                            <i class="fas fa-expand"></i>
+                            <span class="btn-label">Fullscreen</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="button" id="gps-detail-btn" class="btn btn-gps-detail">
+                        <i class="fas fa-location-crosshairs"></i> Detekta Hau
+                    </button>
+                    <button type="button" id="route-detail-btn" class="btn btn-route">
+                        <i class="fas fa-route"></i> Hatudu rota
+                    </button>
+                </div>
+
+                <div id="route-info-box" class="route-info-box" aria-live="polite">
+                    <div class="route-stat">
+                        <span class="route-stat-label"><i class="fas fa-ruler"></i> Distánsia (linha reta)</span>
+                        <span class="route-stat-value" id="stat-straight">--</span>
+                    </div>
+                    <div class="route-stat">
+                        <span class="route-stat-label"><i class="fas fa-road"></i> Distánsia estrada</span>
+                        <span class="route-stat-value" id="stat-road">Kalkula...</span>
+                    </div>
+                    <div class="route-stat">
+                        <span class="route-stat-label"><i class="fas fa-clock"></i> Tempu estimadu</span>
+                        <span class="route-stat-value" id="stat-time">--</span>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- GALERIA -->
+            {% if all_images %}
+            <section class="detail-card">
+                <h2>
+                    <i class="fas fa-images"></i> Galeria foto
+                    <span class="count-pill">{{ all_images|length }}</span>
+                </h2>
+
+                <div class="swiper gallery-swiper">
+                    <div class="swiper-wrapper">
+                        {% for img in all_images %}
+                        <div class="swiper-slide">
+                            <img src="{{ img.url }}" alt="{{ img.description|default:mapa.naran }}"
+                                 {% if not forloop.first %}loading="lazy"{% endif %}>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if all_images|length > 1 %}
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                    {% endif %}
+                </div>
+
+                {% if all_images|length > 1 %}
+                <div class="swiper gallery-thumbs">
+                    <div class="swiper-wrapper">
+                        {% for img in all_images %}
+                        <div class="swiper-slide">
+                            <img src="{{ img.url }}" alt="" loading="lazy">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </section>
+            {% endif %}
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- KOLUNA LIMAN                                           -->
+        <!-- ===================================================== -->
+        <div class="col-lg-4">
+
+            <!-- INFORMASAUN -->
+            <section class="detail-card">
+                <h2><i class="fas fa-list-ul"></i> Informasaun</h2>
+                <dl class="dinfo-list">
+
+                    <div class="dinfo-row">
+                        <i class="fas fa-tag"></i>
+                        <dt class="dinfo-label">Tipu turizmu</dt>
+                        <dd class="dinfo-value">{{ mapa.tipo }}</dd>
+                    </div>
+
+                    {% if mapa.municipality %}
+                    <div class="dinfo-row">
+                        <i class="fas fa-city"></i>
+                        <dt class="dinfo-label">Munisípiu</dt>
+                        <dd class="dinfo-value">{{ mapa.municipality.name }}</dd>
+                    </div>
+                    {% endif %}
+
+                    {% if mapa.administrativepost %}
+                    <div class="dinfo-row">
+                        <i class="fas fa-landmark-flag"></i>
+                        <dt class="dinfo-label">Postu administrativu</dt>
+                        <dd class="dinfo-value">{{ mapa.administrativepost.name }}</dd>
+                    </div>
+                    {% endif %}
+
+                    {% if mapa.village %}
+                    <div class="dinfo-row">
+                        <i class="fas fa-house-flag"></i>
+                        <dt class="dinfo-label">Suku</dt>
+                        <dd class="dinfo-value">{{ mapa.village.name }}</dd>
+                    </div>
+                    {% endif %}
+
+                    {% if mapa.aldeia %}
+                    <div class="dinfo-row">
+                        <i class="fas fa-location-dot"></i>
+                        <dt class="dinfo-label">Aldeia</dt>
+                        <dd class="dinfo-value">{{ mapa.aldeia.name }}</dd>
+                    </div>
+                    {% endif %}
+
+                    <div class="dinfo-row">
+                        <i class="fas fa-calendar-days"></i>
+                        <dt class="dinfo-label">Data rejistu</dt>
+                        <dd class="dinfo-value">{{ mapa.data_registu|date:"d/m/Y" }}</dd>
+                    </div>
+
+                    {% if first_point %}
+                    <div class="dinfo-row">
+                        <i class="fas fa-crosshairs"></i>
+                        <dt class="dinfo-label">Koordenada</dt>
+                        <dd class="dinfo-value">
+                            <span class="coords-row">
+                                <code id="coords-text">{{ first_point.latitude }}, {{ first_point.longitude }}</code>
+                                <button type="button" class="btn-copy" id="copy-coords">Kopia</button>
+                            </span>
+                        </dd>
+                    </div>
+                    {% endif %}
+
+                </dl>
+            </section>
+
+            <!-- FATIN SELUK -->
+            {% if related %}
+            <section class="detail-card">
+                <h2><i class="fas fa-compass"></i> Fatin seluk</h2>
+                <div class="row g-2">
+                    {% for r in related %}
+                    <div class="col-6">
+                        <a href="{% url 'mapa_detail' r.pk %}" class="related-card">
+                            <div class="related-img"
+                                 {% if r.first_image %}
+                                 style="background-image:url('{{ r.first_image }}');"
+                                 {% else %}
+                                 style="background:linear-gradient(135deg,#0a3f4c,#0e5a6b);"
+                                 {% endif %}>
+                                {% if not r.first_image %}<i class="fas fa-image fa-2x"></i>{% endif %}
+                            </div>
+                            <div class="related-body">
+                                <div class="related-title">{{ r.naran }}</div>
+                                <div class="related-loc">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {% if r.municipality %}{{ r.municipality.name }}{% endif %}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<!-- Leaflet ona load iha public_base.html — keta duplika -->
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // =====================================================
+    // KONFIGURASAUN
+    // =====================================================
+    const TIPO_COLORS = {
+        'TurismoRelijiozu': '#8e44ad',
+        'TurismuKultural':  '#e67e22',
+        'TurismuNatural':   '#198754',
+        'TurismuIstoriku':  '#795548',
+        'TurismuEventura':  '#dc3545',
+        'TurismuEkologiku': '#20a39e'
+    };
+
+    const TIPO_ICONS = {
+        'TurismoRelijiozu': 'fa-church',
+        'TurismuKultural':  'fa-landmark',
+        'TurismuNatural':   'fa-mountain',
+        'TurismuIstoriku':  'fa-monument',
+        'TurismuEventura':  'fa-hiking',
+        'TurismuEkologiku': 'fa-leaf'
+    };
+
+    const BRAND_TEAL = '#0e5a6b';
+
+    function normalizeTipo(t) {
+        return (t || "").trim().toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/\s+/g, "");
+    }
+
+    function getTipoColor(tipo) {
+        var n = normalizeTipo(tipo);
+        for (var k in TIPO_COLORS) {
+            if (normalizeTipo(k) === n) return TIPO_COLORS[k];
+        }
+        return BRAND_TEAL;
+    }
+
+    function getTipoIcon(tipo) {
+        var n = normalizeTipo(tipo);
+        for (var k in TIPO_ICONS) {
+            if (normalizeTipo(k) === n) return TIPO_ICONS[k];
+        }
+        return 'fa-map-marker-alt';
+    }
+
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+        var R = 6371000, toRad = Math.PI / 180;
+        var dLat = (lat2 - lat1) * toRad;
+        var dLon = (lon2 - lon1) * toRad;
+        var a = Math.sin(dLat/2)**2 + Math.cos(lat1*toRad) *
+                Math.cos(lat2*toRad) * Math.sin(dLon/2)**2;
+        return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    function formatDistance(m) {
+        if (!isFinite(m)) return '--';
+        if (m < 1000) return Math.round(m) + ' m';
+        return (m / 1000).toFixed(2) + ' km';
+    }
+
+    function formatTime(seconds) {
+        if (!isFinite(seconds)) return '--';
+        var totalMin = Math.round(seconds / 60);
+        var h = Math.floor(totalMin / 60);
+        var m = totalMin % 60;
+        return h > 0 ? h + 'h ' + m + 'min' : totalMin + ' min';
+    }
+
+    // =====================================================
+    // GALERIA SWIPER (servisu mesmu se la iha mapa)
+    // =====================================================
+    var thumbsEl = document.querySelector(".gallery-thumbs");
+    var mainEl = document.querySelector(".gallery-swiper");
+
+    if (mainEl) {
+        var thumbsSwiper = null;
+        if (thumbsEl) {
+            thumbsSwiper = new Swiper(thumbsEl, {
+                spaceBetween: 8,
+                slidesPerView: 4,
+                watchSlidesProgress: true,
+                breakpoints: { 576: { slidesPerView: 5 }, 768: { slidesPerView: 6 } }
+            });
+        }
+        new Swiper(mainEl, {
+            spaceBetween: 0,
+            loop: false,
+            navigation: {
+                nextEl: mainEl.querySelector(".swiper-button-next"),
+                prevEl: mainEl.querySelector(".swiper-button-prev")
+            },
+            thumbs: thumbsSwiper ? { swiper: thumbsSwiper } : undefined
+        });
+    }
+
+    // =====================================================
+    // KÓR BADGE TIPU + KOPIA KOORDENADA
+    // =====================================================
+    var mapEl = document.getElementById("detail-map");
+    var badgeIcon = document.getElementById("tipo-badge-icon");
+    var tipoSource = mapEl ? mapEl.dataset.tipo : "";
+    if (badgeIcon && tipoSource) {
+        badgeIcon.style.setProperty("--tipo-color", getTipoColor(tipoSource));
+    }
+
+    var copyBtn = document.getElementById("copy-coords");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", function () {
+            var txt = document.getElementById("coords-text").textContent.trim();
+            var done = function () {
+                copyBtn.textContent = "Kopia ona";
+                setTimeout(function () { copyBtn.textContent = "Kopia"; }, 1800);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt).then(done);
+            } else {
+                var ta = document.createElement("textarea");
+                ta.value = txt; document.body.appendChild(ta); ta.select();
+                try { document.execCommand("copy"); done(); } catch (e) {}
+                document.body.removeChild(ta);
+            }
+        });
+    }
+
+    // =====================================================
+    // MAPA DETALLU
+    // =====================================================
+    if (!mapEl) return;
+
+    var lat = parseFloat(mapEl.dataset.lat);
+    var lng = parseFloat(mapEl.dataset.lng);
+    var placeName = mapEl.dataset.name;
+    var placeTipo = mapEl.dataset.tipo;
+
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    var map = L.map("detail-map", { zoomControl: true, attributionControl: true })
+        .setView([lat, lng], 15);
+
+    var streetLayer = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        { attribution: '&copy; OpenStreetMap', maxZoom: 19 }
+    ).addTo(map);
+
+    var satelliteLayer = L.tileLayer(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+    );
+
+    var currentLayer = 'street';
+
+    // ===== MARKER =====
+    var color = getTipoColor(placeTipo);
+    var icon  = getTipoIcon(placeTipo);
+
+    var markerHtml =
+        '<div style="width:44px;height:44px;background:' + color + ';' +
+        'border-radius:50% 50% 50% 0;transform:rotate(-45deg);' +
+        'border:3px solid white;box-shadow:0 6px 16px rgba(0,0,0,0.4);' +
+        'display:flex;align-items:center;justify-content:center;">' +
+        '<i class="fas ' + icon + '" style="color:white;font-size:1.1rem;' +
+        'transform:rotate(45deg);"></i></div>';
+
+    L.marker([lat, lng], {
+        icon: L.divIcon({
+            html: markerHtml,
+            className: 'detail-marker',
+            iconSize: [44, 44],
+            iconAnchor: [22, 44]
+        })
+    }).addTo(map).bindPopup("<b>" + placeName + "</b>").openPopup();
+
+    setTimeout(function () { map.invalidateSize(); }, 300);
+
+    // =====================================================
+    // TOGGLE SATÉLITE
+    // =====================================================
+    var satBtn = document.getElementById("detail-satellite-btn");
+    if (satBtn) {
+        satBtn.addEventListener("click", function () {
+            if (currentLayer === 'street') {
+                map.removeLayer(streetLayer);
+                map.addLayer(satelliteLayer);
+                currentLayer = 'satellite';
+                this.classList.add("btn-satellite");
+                this.innerHTML = '<i class="fas fa-map"></i><span class="btn-label">Estrada</span>';
+            } else {
+                map.removeLayer(satelliteLayer);
+                map.addLayer(streetLayer);
+                currentLayer = 'street';
+                this.classList.remove("btn-satellite");
+                this.innerHTML = '<i class="fas fa-satellite"></i><span class="btn-label">Satélite</span>';
+            }
+        });
+    }
+
+    // =====================================================
+    // FULLSCREEN
+    // =====================================================
+    var wrapper = document.getElementById("detail-map-wrapper");
+    var fsBtn = document.getElementById("detail-fullscreen-btn");
+
+    function setFsLabel(on) {
+        if (!fsBtn) return;
+        fsBtn.innerHTML = on
+            ? '<i class="fas fa-compress"></i><span class="btn-label">Normal</span>'
+            : '<i class="fas fa-expand"></i><span class="btn-label">Fullscreen</span>';
+    }
+
+    function enterFullscreen() {
+        var el = wrapper;
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
+        el.classList.add("fullscreen");
+        setFsLabel(true);
+        setTimeout(function () { map.invalidateSize(); }, 200);
+    }
+
+    function exitFullscreen() {
+        if (document.fullscreenElement) {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
+        wrapper.classList.remove("fullscreen");
+        setFsLabel(false);
+        setTimeout(function () { map.invalidateSize(); }, 200);
+    }
+
+    if (fsBtn) {
+        fsBtn.addEventListener("click", function () {
+            if (!document.fullscreenElement && !wrapper.classList.contains("fullscreen")) {
+                enterFullscreen();
+            } else {
+                exitFullscreen();
+            }
+        });
+    }
+
+    document.addEventListener("fullscreenchange", function () {
+        if (!document.fullscreenElement) {
+            wrapper.classList.remove("fullscreen");
+            setFsLabel(false);
+        }
+        setTimeout(function () { map.invalidateSize(); }, 200);
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && wrapper.classList.contains("fullscreen")) {
+            exitFullscreen();
+        }
+    });
+
+    // =====================================================
+    // GPS + ROTA
+    // =====================================================
+    var currentPosition = null;
+    var currentMarker = null;
+    var accuracyCircle = null;
+    var routeControl = null;
+    var destLatLng = L.latLng(lat, lng);
+
+    var gpsBtn = document.getElementById("gps-detail-btn");
+    var routeBtn = document.getElementById("route-detail-btn");
+    var infoBox = document.getElementById("route-info-box");
+
+    if (gpsBtn) {
+        gpsBtn.addEventListener("click", function () {
+            if (!navigator.geolocation) {
+                alert("Browser la suporta GPS.");
+                return;
+            }
+            gpsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detekta...';
+
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    currentPosition = L.latLng(pos.coords.latitude, pos.coords.longitude);
+
+                    if (currentMarker) map.removeLayer(currentMarker);
+                    if (accuracyCircle) map.removeLayer(accuracyCircle);
+
+                    currentMarker = L.marker(currentPosition, {
+                        icon: L.divIcon({
+                            className: 'user-marker',
+                            html: '<div style="width:18px;height:18px;' +
+                                  'background:#0d6efd;border:3px solid white;' +
+                                  'border-radius:50%;box-shadow:0 0 8px #0d6efd,' +
+                                  '0 0 0 6px rgba(13,110,253,0.2);"></div>',
+                            iconSize: [18, 18],
+                            iconAnchor: [9, 9]
+                        })
+                    }).addTo(map).bindPopup("Ita iha ne'e").openPopup();
+
+                    accuracyCircle = L.circle(currentPosition, {
+                        radius: pos.coords.accuracy,
+                        color: "#0d6efd",
+                        fillColor: "#0d6efd",
+                        fillOpacity: 0.1,
+                        weight: 1
+                    }).addTo(map);
+
+                    var group = L.featureGroup([currentMarker, L.marker(destLatLng)]).getBounds();
+                    map.fitBounds(group.pad(0.2));
+
+                    gpsBtn.innerHTML = '<i class="fas fa-check"></i> GPS OK';
+                    gpsBtn.classList.add("is-ok");
+                },
+                function (err) {
+                    gpsBtn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Detekta Hau';
+                    var msg = "La hetan GPS.";
+                    if (err.code === 1) msg = "Permisaun GPS rejeita.";
+                    else if (err.code === 2) msg = "GPS la disponivel.";
+                    else if (err.code === 3) msg = "GPS timeout.";
+                    alert(msg);
+                },
+                { enableHighAccuracy: true, timeout: 15000 }
+            );
+        });
+    }
+
+    if (routeBtn) {
+        routeBtn.addEventListener("click", function () {
+            if (!currentPosition) {
+                alert("Klik 'Detekta Hau' uluk atu detekta ita-nia lokalizasaun.");
+                return;
+            }
+            if (!L.Routing) {
+                alert("Plugin rota la karrega.");
+                return;
+            }
+            if (routeControl) {
+                map.removeControl(routeControl);
+                routeControl = null;
+            }
+
+            var straightM = haversineMeters(currentPosition.lat, currentPosition.lng, lat, lng);
+
+            infoBox.classList.add("active");
+            document.getElementById("stat-straight").textContent = formatDistance(straightM);
+            document.getElementById("stat-road").textContent = "Kalkula...";
+            document.getElementById("stat-time").textContent = "Kalkula...";
+
+            routeControl = L.Routing.control({
+                waypoints: [currentPosition, destLatLng],
+                routeWhileDragging: false,
+                addWaypoints: false,
+                draggableWaypoints: false,
+                showAlternatives: false,
+                fitSelectedRoutes: true,
+                show: false,
+                lineOptions: {
+                    styles: [{ color: "#c8102e", opacity: 0.85, weight: 6 }]
+                },
+                createMarker: function () { return null; },
+                router: L.Routing.osrmv1({
+                    serviceUrl: "https://router.project-osrm.org/route/v1"
+                })
+            }).addTo(map);
+
+            routeControl.on("routesfound", function (e) {
+                if (!e.routes || !e.routes.length) return;
+                var s = e.routes[0].summary;
+                document.getElementById("stat-road").textContent = formatDistance(s.totalDistance);
+                document.getElementById("stat-time").textContent = formatTime(s.totalTime);
+            });
+
+            routeControl.on("routingerror", function () {
+                document.getElementById("stat-road").textContent = "La hetan";
+                document.getElementById("stat-time").textContent = "--";
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

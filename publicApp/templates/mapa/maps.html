@@ -1,0 +1,167 @@
+{% extends "public_base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <div class="row g-3">
+
+        <!-- ============================================= -->
+        <!-- KOLUNA KARUK: MAPA                            -->
+        <!-- ============================================= -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marked-alt me-2"></i>
+                        Mapa Fatin Turizmu — Manufahi
+                    </h5>
+                </div>
+
+                <div class="card-body p-0">
+                    <div id="map"
+                         style="height:600px;width:100%;"
+                         data-api-url="{% url 'turismu_points_api' %}">
+                    </div>
+                </div>
+
+                <div class="card-footer d-flex flex-wrap gap-2">
+                    <button id="locateButton" type="button" class="btn btn-success">
+                        <i class="fas fa-location-crosshairs me-1"></i>
+                        Hau iha ne'e (GPS)
+                    </button>
+
+                    <button id="toggleMapButton" type="button" class="btn btn-primary">
+                        <i class="fas fa-layer-group me-1"></i>
+                        Troka Mapa
+                    </button>
+
+                    <button id="clearRouteButton" type="button" class="btn btn-secondary">
+                        <i class="fas fa-route me-1"></i>
+                        Hamós Rota
+                    </button>
+
+                    <button id="nearestButton" type="button"
+                            class="btn btn-warning ms-auto">
+                        <i class="fas fa-location-arrow me-1"></i>
+                        Fatin Besik Liu
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================= -->
+        <!-- KOLUNA LIMAN: INFORNASAUN ROTA + REKOMENDA   -->
+        <!-- ============================================= -->
+        <div class="col-lg-4">
+
+            <!-- KARTÃO INFORMASAUN VIAJEN -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-directions me-2"></i>
+                        Informasaun Viajen
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <small class="text-muted">Lokalizasaun atual</small>
+                        <div id="gpsStatus" class="fw-bold">Seidauk detekta</div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Destinasaun</small>
+                        <div id="destinationName" class="fw-bold">Seidauk hili fatin</div>
+                        <div id="destinationDistance" class="small text-muted"></div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="border rounded p-3 h-100 text-center">
+                                <i class="fas fa-road text-primary"></i>
+                                <div class="small text-muted mt-2">Distánsia rota</div>
+                                <div id="routeDistance" class="fw-bold">--</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-3 h-100 text-center">
+                                <i class="fas fa-clock text-success"></i>
+                                <div class="small text-muted mt-2">Tempu estimadu</div>
+                                <div id="routeDuration" class="fw-bold">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="routeMessage"
+                         class="alert alert-info mt-3 mb-0"
+                         role="status">
+                        Klik <b>GPS</b>, depois hili marker turizmu atu haree rota.
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- KARTÃO REKOMENDA FATIN BESIK LIU -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-warning text-dark d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0">
+                        <i class="fas fa-star me-1"></i>
+                        Rekomendasaun Fatin Besik
+                    </h6>
+                    <span id="nearestBadge" class="badge bg-dark">0</span>
+                </div>
+                <div class="card-body p-2" id="nearestList"
+                     style="max-height:280px;overflow-y:auto;">
+                    <div class="text-muted small p-2">
+                        Klik GPS atu haree fatin besik liu.
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEGENDA -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-palette me-1"></i>
+                        Legenda — Tipu Turizmu
+                    </h6>
+                </div>
+                <div class="card-body" id="mapLegend"></div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================= -->
+<!-- LIBRARIES (CSS)                -->
+<!-- ============================= -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- ============================= -->
+<!-- LIBRARIES (JS)                 -->
+<!-- ============================= -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<!-- ============================= -->
+<!-- SCRIPT MAPA                    -->
+<!-- ============================= -->
+<script src="{% static 'js/generalmaps.js' %}"></script>
+
+{% endblock %}

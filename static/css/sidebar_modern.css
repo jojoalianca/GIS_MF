@@ -1,0 +1,358 @@
+/* =========================================================
+   sidebar_modern.css
+   Load DEPOIS CSS sidebar antigu. Token hanesan ho mapa_public_modern.css
+   (fallback iha ne'e atu sidebar servisu mós iha pájina seluk).
+   ========================================================= */
+
+:root {
+    --tl-ink: #12303a;
+    --tl-teal: #0e5a6b;
+    --tl-teal-dark: #0a3f4c;
+    --tl-red: #c8102e;
+    --tl-yellow: #f2b705;
+    --sidebar-w: 264px;
+}
+
+/* ---------- SIDEBAR ---------- */
+.admin-sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, var(--tl-teal-dark) 0%, #08323d 100%);
+    color: rgba(255, 255, 255, .85);
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    overflow-y: auto;
+    transition: transform .25s ease;
+}
+
+/* Header / brand */
+.sidebar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 1.1rem 1rem;
+}
+.brand-mark {
+    display: flex; align-items: center; gap: .7rem;
+    text-decoration: none; color: #fff;
+}
+.brand-icon {
+    width: 42px; height: 42px; flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+    background: var(--tl-yellow);
+    color: #3b2c00;
+    font-size: 1.15rem;
+}
+.brand-copy { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-title { font-weight: 800; font-size: 1.05rem; letter-spacing: -.01em; }
+.brand-subtitle { font-size: .78rem; color: rgba(255, 255, 255, .65); }
+
+.sidebar-close {
+    display: none;
+    width: 32px; height: 32px;
+    border: 0; border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+}
+.sidebar-close:hover { background: rgba(255, 255, 255, .22); }
+
+/* Seksaun label */
+.sidebar-section-label {
+    margin: 1.1rem 1.35rem .4rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, .5);
+}
+
+/* Menu */
+.sidebar-menu {
+    list-style: none;
+    margin: 0; padding: 0 .75rem;
+    display: grid; gap: .2rem;
+}
+.sidebar-menu li.divider {
+    height: 1px; margin: .6rem .5rem;
+    background: rgba(255, 255, 255, .12);
+}
+.sidebar-menu a {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .65rem .85rem;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, .85);
+    text-decoration: none;
+    font-size: .94rem; font-weight: 500;
+    position: relative;
+    transition: background .15s, color .15s;
+}
+.sidebar-menu a i { width: 20px; text-align: center; font-size: 1rem; opacity: .9; }
+.sidebar-menu a:hover { background: rgba(255, 255, 255, .09); color: #fff; }
+.sidebar-menu a.active {
+    background: rgba(255, 255, 255, .14);
+    color: #fff;
+    font-weight: 700;
+}
+/* indikador kór kinur iha sorin kuana */
+.sidebar-menu a.active::before {
+    content: "";
+    position: absolute; left: -.75rem; top: 20%; bottom: 20%;
+    width: 4px; border-radius: 0 4px 4px 0;
+    background: var(--tl-yellow);
+}
+.sidebar-menu a:focus-visible,
+.sidebar-close:focus-visible,
+.sidebar-toggle-btn:focus-visible {
+    outline: 3px solid var(--tl-yellow);
+    outline-offset: 2px;
+}
+
+/* Footer ho faixa bandeira */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 1rem 1.35rem 1.25rem;
+    color: rgba(255, 255, 255, .55);
+    font-size: .78rem;
+}
+.flag-stripe {
+    height: 4px; border-radius: 4px; margin-bottom: .8rem;
+    background: linear-gradient(90deg,
+        var(--tl-red) 0 45%, var(--tl-yellow) 45% 75%, #111 75% 100%);
+}
+
+/* ---------- OVERLAY & TOGGLE ---------- */
+.sidebar-overlay {
+    position: fixed; inset: 0; z-index: 1035;
+    background: rgba(8, 30, 38, .55);
+    backdrop-filter: blur(2px);
+    opacity: 0; visibility: hidden;
+    transition: opacity .2s, visibility .2s;
+}
+.sidebar-overlay.show,
+.sidebar-overlay.active,
+.sidebar-overlay.open { opacity: 1; visibility: visible; }
+
+.sidebar-toggle-btn {
+    display: none;
+    position: fixed; top: 14px; left: 14px; z-index: 1030;
+    width: 44px; height: 44px;
+    border: 0; border-radius: 12px;
+    background: var(--tl-teal);
+    color: #fff;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 14px rgba(10, 63, 76, .3);
+}
+.sidebar-toggle-btn:hover { background: var(--tl-teal-dark); }
+
+/* ---------- LAYOUT: sidebar + content ---------- */
+/* Content prinsipál tenke hakat sidebar iha desktop.
+   Troka selector ba wrapper ne'ebé ita-nia base uza (main / .main-content / .page-content). */
+@media (min-width: 992px) {
+    .content-wrapper.main-content,
+    .main-content,
+    .page-content,
+    main.admin-main {
+        margin-left: var(--sidebar-w);
+    }
+}
+
+/* Mobile: sidebar subar, loke ho toggle */
+@media (max-width: 991.98px) {
+    .admin-sidebar {
+        transform: translateX(-100%);
+        box-shadow: none;
+    }
+    .admin-sidebar.show,
+    .admin-sidebar.active,
+    .admin-sidebar.open {
+        transform: translateX(0);
+        box-shadow: 8px 0 32px rgba(0, 0, 0, .3);
+    }
+    .sidebar-close { display: inline-flex; align-items: center; justify-content: center; }
+    .sidebar-toggle-btn { display: inline-flex; align-items: center; justify-content: center; }
+
+    /* hero la subar ho botaun toggle */
+    .tl-hero { padding-top: 4.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-sidebar, .sidebar-overlay { transition: none; }
+}
+
+
+/* =========================================================
+   BASE: body, skip-link, footer (tau iha public_base.html)
+   ========================================================= */
+.public-body {
+    background: #f2f6f6;
+    color: var(--tl-ink);
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.content-wrapper { min-width: 0; }   /* evita mapa/tabela hamoos content */
+
+.skip-link {
+    position: absolute; left: 1rem; top: -4rem; z-index: 2000;
+    background: var(--tl-yellow); color: #3b2c00;
+    padding: .6rem 1rem; border-radius: 10px; font-weight: 700;
+    text-decoration: none;
+}
+.skip-link:focus { top: 1rem; }
+
+.admin-footer {
+    background: #fff;
+    border-top: 1px solid #dbe5e7;
+    font-size: .85rem;
+    color: #4d6670;
+    padding-top: .9rem;
+}
+.admin-footer .footer-inner {
+    display: flex; flex-wrap: wrap; gap: .5rem;
+    justify-content: space-between; align-items: center;
+    padding-bottom: .9rem;
+}
+.footer-author { font-weight: 700; color: var(--tl-teal); text-decoration: none; }
+.footer-author:hover { text-decoration: underline; }
+.footer-org { font-weight: 600; }
+.flag-stripe--footer { border-radius: 0; margin: 0; }
+
+
+/* =========================================================
+   FIX LAYOUT: content besik sidebar (reset margin/padding antigu)
+   ========================================================= */
+body.public-body {
+    margin: 0 !important;
+    padding-left: 0 !important;
+}
+@media (min-width: 992px) {
+    .content-wrapper.main-content {
+        margin-left: var(--sidebar-w) !important;
+        padding-left: 0 !important;
+        width: calc(100% - var(--sidebar-w)) !important;
+        max-width: none !important;
+    }
+}
+@media (max-width: 991.98px) {
+    .content-wrapper.main-content {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        width: 100% !important;
+    }
+}
+.content-wrapper.main-content > main {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Tipografia: hamoos letter/word-spacing negativu husi CSS antigu */
+.admin-sidebar,
+.content-wrapper {
+    letter-spacing: normal;
+    word-spacing: normal;
+}
+
+/* Ícone sidebar tenke mutuk (la iha kór verde husi CSS antigu) */
+.sidebar-menu a i { color: inherit !important; }
+.sidebar-header { border-bottom: 1px solid rgba(255, 255, 255, .12); }
+
+
+/* =========================================================
+   TOP HEADER (iha public_base.html)
+   ========================================================= */
+.top-header {
+    position: sticky; top: 0; z-index: 1020;
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #dbe5e7;
+}
+.top-header__inner {
+    min-height: 64px;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: .5rem clamp(1rem, 3vw, 2.5rem);
+}
+.top-header__title { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.top-header__title strong {
+    font-size: 1.05rem; font-weight: 800; color: var(--tl-ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.top-header__title span {
+    font-size: .8rem; color: #4d6670;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.top-header__nav { display: flex; align-items: center; gap: .35rem; flex: none; }
+.top-header__nav a {
+    display: inline-flex; align-items: center; gap: .45rem;
+    padding: .5rem .85rem;
+    border-radius: 999px;
+    color: var(--tl-ink);
+    text-decoration: none;
+    font-size: .88rem; font-weight: 600;
+    transition: background .15s;
+}
+.top-header__nav a:hover { background: #e3f0f2; }
+.top-header__nav a i { color: var(--tl-teal); }
+.top-header__nav a.top-header__cta { background: var(--tl-teal); color: #fff; }
+.top-header__nav a.top-header__cta i { color: var(--tl-yellow); }
+.top-header__nav a.top-header__cta:hover { background: var(--tl-teal-dark); }
+.top-header__nav a:focus-visible { outline: 3px solid var(--tl-yellow); outline-offset: 2px; }
+
+/* Hero hahú direta iha okos header: la presiza margin leten */
+.content-wrapper > main > div > .tl-hero:first-child { margin-top: 0; }
+
+@media (max-width: 991.98px) {
+    /* espasu ba botaun toggle sidebar (44px + 14px) */
+    .top-header__inner { padding-left: 4.5rem; }
+}
+@media (max-width: 575.98px) {
+    .top-header__nav a span { display: none; }
+    .top-header__nav a { padding: .55rem .7rem; }
+    .top-header__title span { display: none; }
+}
+
+
+/* =========================================================
+   FIX (haree husi screenshot mapa_detail): footer & header
+   ========================================================= */
+.content-wrapper.main-content > .admin-footer,
+.content-wrapper.main-content .admin-footer {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    position: static !important;
+}
+.top-header { margin: 0 !important; width: 100%; }
+.top-header .top-header__inner {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    margin: 0 !important;
+    text-align: left;
+}
+.top-header .top-header__title { text-align: left; align-items: flex-start; }
+
+
+/* =========================================================
+   FIX: header tenke iha leten tebes (hamoos espasu 55px husi CSS antigu)
+   ========================================================= */
+html, body.public-body {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+.content-wrapper.main-content {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+.top-header {
+    position: sticky !important;
+    top: 0 !important;
+    margin-top: 0 !important;
+    transform: none !important;
+}
+.top-header__nav {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+}

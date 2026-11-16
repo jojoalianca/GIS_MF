@@ -1,0 +1,285 @@
+{% extends "public_base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link href="{% static 'css/mapa_public.css' %}" rel="stylesheet">
+<!-- CSS foun ne'e tau DEPOIS mapa_public.css atu override tampilan -->
+<link href="{% static 'css/mapa_public_modern.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block main_container_class %}p-0{% endblock %}
+
+{% block content %}
+
+<!-- ===================================================== -->
+<!-- HERO                                                  -->
+<!-- ===================================================== -->
+<header class="tl-hero">
+    <div class="container">
+        <h1 class="tl-hero__title">Esplora Timor-Leste liu husi mapa</h1>
+        <p class="tl-hero__lead">
+            Klik <b>GPS Hau</b> atu hatene ita-nia fatin, depois hili marker turizmu
+            atu haree distánsia, rota no tempu viajen.
+        </p>
+        <div class="tl-hero__stats">
+            <div class="tl-stat">
+                <span class="tl-stat__num">{{ total_points|default:0 }}</span>
+                <span class="tl-stat__label">Fatin turizmu</span>
+            </div>
+            <div class="tl-stat">
+                <span class="tl-stat__num">{{ tipo_list|length }}</span>
+                <span class="tl-stat__label">Tipu turizmu</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ===================================================== -->
+<!-- SEKSAUN MAPA                                          -->
+<!-- ===================================================== -->
+<section class="map-section" id="mapa-section">
+    <div class="container">
+        <div class="row g-3 g-lg-4">
+
+            <!-- FILTER SIDEBAR -->
+            <div class="col-lg-3">
+                <aside class="filter-sidebar">
+                    <h2 class="filter-title">
+                        <i class="fas fa-sliders-h"></i> Filtru tipu
+                    </h2>
+                    <ul class="filter-list">
+                        <li class="filter-item active" data-tipo="all">
+                            <div class="filter-item__main">
+                                <span class="filter-icon filter-icon--all">
+                                    <i class="fas fa-layer-group"></i>
+                                </span>
+                                <span>Hotu tipu</span>
+                            </div>
+                            <span class="filter-count">{{ total_points|default:0 }}</span>
+                        </li>
+                        {% for tipo_data in tipo_list %}
+                        <li class="filter-item" data-tipo="{{ tipo_data.tipo|cut:' ' }}">
+                            <div class="filter-item__main">
+                                <span class="filter-icon" style="background:{{ tipo_data.color }};">
+                                    <i class="fas
+                                        {% with t=tipo_data.tipo|cut:" " %}{% if t == 'TurismoRelijiozu' or t == 'TurismuRelijiozu' %}fa-church{% elif t == 'TurismuKultural' %}fa-landmark{% elif t == 'TurismuNatural' %}fa-mountain{% elif t == 'TurismuIstoriku' %}fa-monument{% elif t == 'TurismuEventura' %}fa-hiking{% else %}fa-leaf{% endif %}{% endwith %}"></i>
+                                </span>
+                                <span>{{ tipo_data.tipo }}</span>
+                            </div>
+                            <span class="filter-count">{{ tipo_data.count }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <button id="reset-map" class="filter-reset-btn" type="button">
+                        <i class="fas fa-rotate-left"></i> Reset mapa
+                    </button>
+                </aside>
+            </div>
+
+            <!-- MAPA -->
+            <div class="col-lg-9">
+                <div class="map-container" id="map-container">
+                    <div id="map" data-api-url="{% url 'turismu_points_api' %}"></div>
+
+                    <!-- KONTROLU -->
+                    <div class="map-controls">
+                        <button id="gps-btn" class="map-control-btn btn-gps" type="button">
+                            <i class="fas fa-location-crosshairs"></i>
+                            <span class="btn-label">GPS Hau</span>
+                        </button>
+                        <button id="nearest-btn" class="map-control-btn btn-nearest" type="button">
+                            <i class="fas fa-location-arrow"></i>
+                            <span class="btn-label">Fatin besik liu</span>
+                        </button>
+                        <button id="toggle-view" class="map-control-btn" type="button">
+                            <i class="fas fa-satellite"></i>
+                            <span class="btn-label">Satélite</span>
+                        </button>
+                        <button id="clear-route" class="map-control-btn" type="button"
+                                style="display:none;">
+                            <i class="fas fa-times"></i>
+                            <span class="btn-label">Hamós rota</span>
+                        </button>
+                        <button id="fullscreen-map" class="map-control-btn" type="button"
+                                aria-label="Ekran tomak">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+
+                    <!-- LEGENDA -->
+                    <div class="legend-container">
+                        <div class="legend-title">
+                            <i class="fas fa-key"></i> Legenda
+                        </div>
+                        {% for tipo_data in tipo_list %}
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color:{{ tipo_data.color }};"></div>
+                            <span>{{ tipo_data.tipo }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- PAINEL ROTA -->
+                    <div class="route-panel" id="route-panel">
+                        <div class="route-panel-title">
+                            <span><i class="fas fa-route"></i> Informasaun rota</span>
+                            <button id="close-route-panel" type="button" aria-label="Taka">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="route-info-row">
+                            <span class="route-info-label">
+                                <i class="fas fa-map-marker-alt text-primary"></i> Destinu
+                            </span>
+                            <span class="route-info-value" id="info-dest">--</span>
+                        </div>
+                        <div class="route-info-row">
+                            <span class="route-info-label">
+                                <i class="fas fa-ruler text-info"></i> Linha reta
+                            </span>
+                            <span class="route-info-value" id="info-straight">--</span>
+                        </div>
+                        <div class="route-info-row">
+                            <span class="route-info-label">
+                                <i class="fas fa-road text-success"></i> Distánsia estrada
+                            </span>
+                            <span class="route-info-value" id="info-road">Kalkula...</span>
+                        </div>
+                        <div class="route-info-row">
+                            <span class="route-info-label">
+                                <i class="fas fa-clock text-warning"></i> Tempu estimadu
+                            </span>
+                            <span class="route-info-value" id="info-time">--</span>
+                        </div>
+                    </div>
+
+                    <!-- PAINEL FATIN BESIK LIU -->
+                    <div class="nearest-panel" id="nearest-panel">
+                        <div class="nearest-header">
+                            <span><i class="fas fa-star"></i> Fatin besik liu</span>
+                            <button id="close-nearest-panel" type="button" aria-label="Taka">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="nearest-list" id="nearest-list">
+                            <div class="p-3 text-muted small text-center">
+                                Klik GPS Hau uluk.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================================================== -->
+<!-- SEKSAUN CARDS                                         -->
+<!-- ===================================================== -->
+<section class="cards-section" id="cards-section">
+    <div class="container">
+
+        <div class="section-head">
+            <h2 class="section-title">Fatin turizmu iha Timor-Leste</h2>
+            <p class="section-sub">
+                Hili fatin ida atu haree detallu, imajen no lokalizasaun.
+            </p>
+        </div>
+
+        {% if mapas %}
+        <div class="row g-3 g-lg-4">
+            {% for mapa in mapas %}
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                <article class="modern-card">
+
+                    <div class="card-slideshow-container">
+                        {% if mapa.all_images %}
+                        <div class="swiper horizontal-slideshow" id="swiper-{{ mapa.id }}">
+                            <div class="swiper-wrapper">
+                                {% for image in mapa.all_images %}
+                                <div class="swiper-slide swiper-slide-card">
+                                    <img src="{{ image.url }}"
+                                         alt="{{ image.description|default:mapa.naran }}"
+                                         class="card-image" loading="lazy">
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-pagination"></div>
+                        </div>
+                        {% else %}
+                        <div class="no-images">
+                            <i class="fas fa-camera fa-2x"></i>
+                            <p>La iha imajen</p>
+                        </div>
+                        {% endif %}
+
+                        <span class="card-type-badge">
+                            <i class="fas
+                                {% with t=mapa.tipo|cut:" " %}{% if t == 'TurismoRelijiozu' or t == 'TurismuRelijiozu' %}fa-church{% elif t == 'TurismuKultural' %}fa-landmark{% elif t == 'TurismuNatural' %}fa-mountain{% elif t == 'TurismuIstoriku' %}fa-monument{% elif t == 'TurismuEventura' %}fa-hiking{% else %}fa-leaf{% endif %}{% endwith %}"></i>
+                            {{ mapa.tipo|default:"Turizmu" }}
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+                        <h3 class="card-title-modern">{{ mapa.naran|truncatechars:34 }}</h3>
+
+                        <div class="card-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>
+                                {% if mapa.municipality %}{{ mapa.municipality.name }}{% else %}Município{% endif %}{% if mapa.village %} › {{ mapa.village.name }}{% endif %}
+                            </span>
+                        </div>
+
+                        {% if mapa.Obs %}
+                        <p class="card-desc">{{ mapa.Obs }}</p>
+                        {% else %}
+                        <p class="card-desc card-desc--empty">La iha deskrisaun.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-footer-modern">
+                        <a href="{% url 'mapa_detail' mapa.id %}" class="btn-detail">
+                            Haree detallu
+                        </a>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-map fa-3x"></i>
+            <h3>Dadus mapa seidauk iha.</h3>
+            <p>Fatin turizmu sei hatudu iha ne'e kuandu dadus tama ona.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block scripts %}
+<!-- Leaflet + MarkerCluster ona iha public_base.html — keta duplika -->
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="{% static 'js/generalmaps.js' %}"></script>
+<script>
+/* Fallback: se view la haruka total_points, kalkula husi kontajen filtru */
+document.addEventListener('DOMContentLoaded', function () {
+    var allCount = document.querySelector('.filter-item[data-tipo="all"] .filter-count');
+    var statNum  = document.querySelector('.tl-stat__num');
+    if (!allCount || parseInt(allCount.textContent, 10) > 0) return;
+    var total = 0;
+    document.querySelectorAll('.filter-item:not([data-tipo="all"]) .filter-count')
+        .forEach(function (el) { total += parseInt(el.textContent, 10) || 0; });
+    allCount.textContent = total;
+    if (statNum) statNum.textContent = total;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,506 @@
+<!-- templates/mapa/mapa_dashboard.html -->
+{% extends "main/layout.html" %}
+{% load static %}
+
+{% block extra_css %}
+
+<style>
+    /* ---------- MODERN AGENCY DASHBOARD ---------- */
+    :root {
+        --primary: #0a5c2e;
+        --primary-light: #e8f3e9;
+        --primary-dark: #064523;
+        --secondary: #f8f9fc;
+        --border: #e2e8f0;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+        --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.02);
+        --radius: 20px;
+        --radius-sm: 12px;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #f9fbfd;
+        color: var(--text);
+    }
+
+    .modern-wrapper {
+        padding: 24px 32px;
+    }
+
+    /* Kartaun modernu unifikadu */
+    .modern-card {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255,255,255,0.1);
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .modern-card:hover {
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.02);
+    }
+
+    .modern-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        background: white;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modern-header h5, .modern-header h6 {
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        letter-spacing: -0.01em;
+    }
+
+    .modern-header i {
+        color: var(--primary);
+        font-size: 1.2rem;
+        background: var(--primary-light);
+        padding: 8px;
+        border-radius: 12px;
+    }
+
+    .modern-body {
+        padding: 24px;
+    }
+
+    /* Kartaun estatístika */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius);
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+
+    .stat-info h4 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .stat-info p {
+        color: var(--text-light);
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin: 4px 0 0;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--primary-light);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 2rem;
+    }
+
+    /* Gráfiku container */
+    .chart-container {
+        position: relative;
+        height: 280px;
+        width: 100%;
+        margin-bottom: 16px;
+    }
+
+    /* Lista mapa foun */
+    .recent-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .recent-item {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 16px 20px;
+        transition: all 0.2s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .recent-item:hover {
+        background: var(--secondary);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .recent-item h6 {
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 6px;
+    }
+
+    .recent-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    .recent-meta i {
+        width: 16px;
+        color: var(--primary);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 24px;
+        color: var(--text-light);
+    }
+
+    .empty-state i {
+        font-size: 3.5rem;
+        color: var(--border);
+        margin-bottom: 16px;
+    }
+
+    /* Tabela alternativa (fallback) */
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .modern-table th {
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .modern-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .progress-modern {
+        height: 8px;
+        background: var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .progress-modern-bar {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .modern-wrapper { padding: 16px; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 576px) {
+        .stats-grid { grid-template-columns: 1fr; }
+        .modern-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="modern-wrapper">
+    <!-- ESTATÍSTIKA PRINCIPAIS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>{{ total_mapas|default:"0" }}</h4>
+                <p>Fatin Turístiku</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-map-marked-alt"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>{{ mapas_por_tipo|length }}</h4>
+                <p>Tipu Diferente</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>{{ total_pontos|default:"0" }}</h4>
+                <p>Total Pontos</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-map-pin"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h4>{{ total_imagens|default:"0" }}</h4>
+                <p>Fotos Upload</p>
+            </div>
+            <div class="stat-icon">
+                <i class="fas fa-camera"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- GRÁFIKU DISTRIBUSAUN TIPU -->
+        <div class="col-xl-7 col-lg-6">
+            <div class="modern-card h-100">
+                <div class="modern-header">
+                    <h5>
+                        <i class="fas fa-chart-pie"></i>
+                        Distribuisaun tuir Tipu
+                    </h5>
+                    <span class="badge" style="background: var(--primary-light); color: var(--primary-dark); padding: 6px 14px; border-radius: 50px; font-weight: 600;">
+                        {{ mapas_por_tipo|length }} tipu
+                    </span>
+                </div>
+                <div class="modern-body">
+                    {% if mapas_por_tipo %}
+                    <div class="chart-container">
+                        <canvas id="tipoChart"></canvas>
+                    </div>
+                    <!-- Tabela resumu (fallback / detalhe) -->
+                    <div class="mt-4">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Tipu Turismu</th>
+                                    <th>Total</th>
+                                    <th>Persentajen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tipo in mapas_por_tipo %}
+                                <tr>
+                                    <td style="font-weight: 500;">{{ tipo.tipo }}</td>
+                                    <td>{{ tipo.count }}</td>
+                                    <td style="width: 200px;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="progress-modern flex-grow-1">
+                                                <div class="progress-modern-bar" style="width: {{ tipo.percentage }}%;"></div>
+                                            </div>
+                                            <span style="color: var(--text-light); font-size: 0.9rem;">{{ tipo.percentage|floatformat:1 }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-chart-pie"></i>
+                        <h5>La iha dadus estatístika</h5>
+                        <p style="color: var(--text-light);">Kria mapa turístiku atu haree distribuisaun.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- LISTA MAPA FOUN -->
+        <div class="col-xl-5 col-lg-6">
+            <div class="modern-card h-100">
+                <div class="modern-header">
+                    <h5>
+                        <i class="fas fa-clock-rotate-left"></i>
+                        Mapas Rejistu Foun
+                    </h5>
+                    <a href="{% url 'mapa-list' %}" class="btn-modern btn-outline-modern" style="padding: 6px 16px; font-size: 0.85rem;">
+                        Haree hotu
+                    </a>
+                </div>
+                <div class="modern-body">
+                    {% if ultimos_mapas %}
+                    <div class="recent-list">
+                        {% for mapa in ultimos_mapas %}
+                        <a href="{% url 'mapa-detail' mapa.id %}" class="recent-item">
+                            <h6>{{ mapa.naran }}</h6>
+                            <div class="recent-meta">
+                                <span><i class="fas fa-map-pin"></i> {{ mapa.Location.count }} ponto{{ mapa.Location.count|pluralize }}</span>
+                                <span><i class="fas fa-calendar"></i> {{ mapa.data_registu|date:"d M Y" }}</span>
+                                {% if mapa.municipality %}
+                                <span><i class="fas fa-city"></i> {{ mapa.municipality.name }}</span>
+                                {% endif %}
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-map"></i>
+                        <h5>La iha mapa rejistadu</h5>
+                        <a href="{% url 'mapa-create' %}" class="btn-modern btn-primary-modern" style="margin-top: 16px;">
+                            <i class="fas fa-plus"></i> Kria Mapa Foun
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ---------- GRÁFIKU PIE CHART ----------
+        {% if mapas_por_tipo %}
+        var ctx = document.getElementById('tipoChart').getContext('2d');
+        
+        // Kór dinámiku ba tipu turismu (hanesan iha marker)
+        var tipoColors = {
+            'Turismo Relijiozu': '#FF6B6B',
+            'Turismu Kultural': '#4ECDC4',
+            'Turismu Natural': '#45B7D1',
+            'Turismu Istoriku': '#96CEB4',
+            'Turismu Eventura': '#FFEAA7',
+            'Turismu Ekologiku': '#55EFC4'
+        };
+
+        var labels = [
+            {% for tipo in mapas_por_tipo %}
+                "{{ tipo.tipo }}",
+            {% endfor %}
+        ];
+        var data = [
+            {% for tipo in mapas_por_tipo %}
+                {{ tipo.count }},
+            {% endfor %}
+        ];
+        var backgroundColors = labels.map(label => tipoColors[label] || '#64748b');
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { family: 'Inter', size: 12, weight: '500' },
+                            color: '#1e293b',
+                            padding: 16
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'white',
+                        titleColor: '#0a5c2e',
+                        bodyColor: '#1e293b',
+                        borderColor: '#e2e8f0',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.raw || 0;
+                                var total = context.dataset.data.reduce((a,b) => a + b, 0);
+                                var percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    });
+
+    // ---------- BOTÃO OUTLINE MODERN (DEFINE CASO LA IHA) ----------
+    // Estilu ba btn-modern (reutiliza husi template seluk)
+    var style = document.createElement('style');
+    style.innerHTML = `
+        .btn-modern {
+            border: none;
+            border-radius: 40px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn-primary-modern {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(10,92,46,0.2);
+        }
+        .btn-primary-modern:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(10,92,46,0.25);
+            color: white;
+        }
+        .btn-outline-modern {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-outline-modern:hover {
+            background: #f8fafc;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

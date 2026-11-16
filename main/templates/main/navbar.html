@@ -1,0 +1,17 @@
+{% load static %}
+<header class="site-header">
+	<nav class="navbar navbar-expand-md bg-success  text-black fixed-top ">
+		<a class="navbar-brand text-white" href="#">
+		<img src="{% static 'main/images/logo.PNG' %}" alt="Logo" style="width:30px;">SISTEMA INFORMASAN GEOGRAFIA BA FATIN TURISMU MANU-FAHI
+		</a>
+		<button class="navbar-toggler bg-light" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon bg-dark"></span>
+		</button>
+		{% if user.is_authenticated %}
+			{% if user.groups.all.0.name == 'Admin' %}
+				{% include 'main/navbarAdmin.html' %}
+			{% endif %}
+		{% endif %}
+	</nav>
+</header>
+<hr/>
