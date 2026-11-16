@@ -13,7 +13,7 @@ var baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 var satelliteLayer = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
     attribution: '© Mapbox',
     id: 'mapbox/satellite-v9',
-    accessToken: 'pk.pk.eyJ1IjoiZWxpZ2lvam9qb2FsaWFuY2EiLCJhIjoiY213aWwwemtrMDBnbTJ6b2tkb21vbDR1OCJ9.ULL6YzmZtl6iampzxJe45g', // Ganti dengan token Mapbox Anda
+    accessToken: 'pk.eyJ1IjoiZWxpZ2lvam9qb2FsaWFuY2EiLCJhIjoiY213aWwwemtrMDBnbTJ6b2tkb21vbDR1OCJ9.ULL6YzmZtl6iampzxJe45g', // Ganti dengan token Mapbox Anda
     tileSize: 512,
     zoomOffset: -1
 });
