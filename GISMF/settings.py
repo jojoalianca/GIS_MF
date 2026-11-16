@@ -8,9 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ga2gv55cf2myap%gzbpo4=^-h_2lxdvds3o8y8^fcc5pjlyvmv'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['GISMF.onrender.com']
+DEBUG = True 
+ALLOWED_HOSTS = ['https://gis-mf.onrender.com', '*']
 
 # Application definition
 
