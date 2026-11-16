@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-ga2gv55cf2myap%gzbpo4=^-h_2lxdvds3o8y8^fcc5pjlyvmv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://gis-mf.onrender.com','*']
+ALLOWED_HOSTS = ['GISMF.onrender.com']
 
 # Application definition
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Hatama iha ne'e
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
