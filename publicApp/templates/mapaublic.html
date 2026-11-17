@@ -5,8 +5,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <link href="{% static 'css/mapa_public.css' %}" rel="stylesheet">
-<!-- CSS foun ne'e tau DEPOIS mapa_public.css atu override tampilan -->
 <link href="{% static 'css/mapa_public_modern.css' %}" rel="stylesheet">
+<!-- CSS FOUN — popup modernu, marker, badge kontajen -->
+<link href="{% static 'css/mapa_public_popup.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block main_container_class %}p-0{% endblock %}
@@ -21,23 +22,27 @@
         <h1 class="tl-hero__title">Esplora Timor-Leste liu husi mapa</h1>
         <p class="tl-hero__lead">
             Klik <b>GPS Hau</b> atu hatene ita-nia fatin, depois hili marker turizmu
-            atu haree distánsia, rota no tempu viajen.
+            atu haree distánsia, rota no tempu viajen.lllll
         </p>
         <div class="tl-hero__stats">
             <div class="tl-stat">
-                <span class="tl-stat__num">{{ total_points|default:0 }}</span>
+                <span class="tl-stat__num" id="stat-total-points">{{ total_points|default:0 }}</span>
                 <span class="tl-stat__label">Fatin turizmu</span>
             </div>
             <div class="tl-stat">
                 <span class="tl-stat__num">{{ tipo_list|length }}</span>
                 <span class="tl-stat__label">Tipu turizmu</span>
             </div>
+            <div class="tl-stat tl-stat--live" id="stat-live-wrap" style="display:none;">
+                <span class="tl-stat__num" id="stat-live-count">0</span>
+                <span class="tl-stat__label">Hatudu iha mapa</span>
+            </div>
         </div>
     </div>
 </header>
 
 <!-- ===================================================== -->
-<!-- SEKSAUN MAPA                                          -->
+<!-- SEKSUN MAPA                                           -->
 <!-- ===================================================== -->
 <section class="map-section" id="mapa-section">
     <div class="container">
@@ -80,8 +85,14 @@
 
             <!-- MAPA -->
             <div class="col-lg-9">
-                <div class="map-container" id="map-container"style="width: 100%; height: 500px;">
+                <div class="map-container" id="map-container">
                     <div id="map" data-api-url="{% url 'turismu_points_api' %}"></div>
+
+                    <!-- BADGE KONTAJEN IHA MAPA -->
+                    <div class="map-count-badge" id="map-count-badge">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="map-count-text">0 fatin</span>
+                    </div>
 
                     <!-- KONTROLU -->
                     <div class="map-controls">
@@ -97,13 +108,11 @@
                             <i class="fas fa-satellite"></i>
                             <span class="btn-label">Satélite</span>
                         </button>
-                        <button id="clear-route" class="map-control-btn" type="button"
-                                style="display:none;">
+                        <button id="clear-route" class="map-control-btn" type="button" style="display:none;">
                             <i class="fas fa-times"></i>
                             <span class="btn-label">Hamós rota</span>
                         </button>
-                        <button id="fullscreen-map" class="map-control-btn" type="button"
-                                aria-label="Ekran tomak">
+                        <button id="fullscreen-map" class="map-control-btn" type="button" aria-label="Ekran tomak">
                             <i class="fas fa-expand"></i>
                         </button>
                     </div>
@@ -177,11 +186,10 @@
 </section>
 
 <!-- ===================================================== -->
-<!-- SEKSAUN CARDS                                         -->
+<!-- SEKSUN CARDS                                          -->
 <!-- ===================================================== -->
 <section class="cards-section" id="cards-section">
     <div class="container">
-
         <div class="section-head">
             <h2 class="section-title">Fatin turizmu iha Timor-Leste</h2>
             <p class="section-sub">
@@ -194,7 +202,6 @@
             {% for mapa in mapas %}
             <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
                 <article class="modern-card">
-
                     <div class="card-slideshow-container">
                         {% if mapa.all_images %}
                         <div class="swiper horizontal-slideshow" id="swiper-{{ mapa.id }}">
@@ -227,14 +234,12 @@
 
                     <div class="card-body">
                         <h3 class="card-title-modern">{{ mapa.naran|truncatechars:34 }}</h3>
-
                         <div class="card-location">
                             <i class="fas fa-map-marker-alt"></i>
                             <span>
                                 {% if mapa.municipality %}{{ mapa.municipality.name }}{% else %}Município{% endif %}{% if mapa.village %} › {{ mapa.village.name }}{% endif %}
                             </span>
                         </div>
-
                         {% if mapa.Obs %}
                         <p class="card-desc">{{ mapa.Obs }}</p>
                         {% else %}
@@ -265,12 +270,11 @@
 
 
 {% block scripts %}
-<!-- Leaflet + MarkerCluster ona iha public_base.html — keta duplika -->
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="{% static 'js/generalmaps.js' %}"></script>
+<script src="{% static 'js/mapa_public_popup.js' %}"></script>
 <script>
-/* Fallback: se view la haruka total_points, kalkula husi kontajen filtru */
 document.addEventListener('DOMContentLoaded', function () {
     var allCount = document.querySelector('.filter-item[data-tipo="all"] .filter-count');
     var statNum  = document.querySelector('.tl-stat__num');
