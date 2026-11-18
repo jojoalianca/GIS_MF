@@ -1,6 +1,6 @@
 /* =====================================================================
    GENERALMAPS.JS — KOMPLETU FINAL
-   Popup Rua + 4 Modu + Auto-Update Distánsia + Labele Taka Kontrolu GPS
+   Popup + Tempu Modu + Fullscreen + Botão Detallu Deit
    ===================================================================== */
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
        1. ELEMENTU HTML
        ================================================================= */
     const mapEl = document.getElementById("map");
+    const mapContainer = document.getElementById("map-container");
 
     const gpsBtn         = document.getElementById("gps-btn")          || document.getElementById("locateButton");
     const nearestBtn     = document.getElementById("nearest-btn")      || document.getElementById("nearestButton");
@@ -17,15 +18,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const clearRouteBtn  = document.getElementById("clear-route")      || document.getElementById("clearRouteButton");
     const fullscreenBtn  = document.getElementById("fullscreen-map");
 
-    const infoDest       = document.getElementById("info-dest")        || document.getElementById("destinationName");
-    const infoStraight   = document.getElementById("info-straight")    || document.getElementById("destinationDistance");
-    const infoRoad       = document.getElementById("info-road")        || document.getElementById("routeDistance");
-    const infoTime       = document.getElementById("info-time")        || document.getElementById("routeDuration");
+    const infoDest       = document.getElementById("info-dest");
+    const infoStraight   = document.getElementById("info-straight");
+    const infoRoad       = document.getElementById("info-road");
+    const infoTime       = document.getElementById("info-time");
     const routePanel     = document.getElementById("route-panel");
     const closeRoutePanel= document.getElementById("close-route-panel");
 
     const nearestPanel   = document.getElementById("nearest-panel");
-    const nearestList    = document.getElementById("nearest-list")     || document.getElementById("nearestList");
+    const nearestList    = document.getElementById("nearest-list");
     const closeNearestBtn= document.getElementById("close-nearest-panel");
 
     const mapCountBadge  = document.getElementById("map-count-badge");
@@ -37,7 +38,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const resetBtn       = document.getElementById("reset-map");
 
     /* =================================================================
-       2. VERIFIKA
+       2. DETEKTA MOBILE
+       ================================================================= */
+    const IS_MOBILE = window.innerWidth <= 768 ||
+                      /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+    /* =================================================================
+       3. VERIFIKA
        ================================================================= */
     if (!mapEl || typeof L === "undefined") {
         console.error("Leaflet ka elementu #map la hetan.");
@@ -48,9 +55,14 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!L.Routing) console.warn("Leaflet Routing Machine la karrega.");
 
     /* =================================================================
-       3. INISIALIZA MAPA
+       4. INISIALIZA MAPA
        ================================================================= */
-    const map = L.map("map").setView([-9.0, 125.8], 10);
+    const map = L.map("map", {
+        zoomControl: false,
+        tap: !IS_MOBILE,
+    }).setView([-9.0, 125.8], 10);
+
+    L.control.zoom({ position: "bottomright" }).addTo(map);
 
     const streetLayer = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -80,14 +92,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =================================================================
-       4. MARKER CLUSTER
+       5. MARKER CLUSTER
        ================================================================= */
     let markerCluster;
     if (typeof L.markerClusterGroup === "function") {
         markerCluster = L.markerClusterGroup({
             showCoverageOnHover: false,
-            maxClusterRadius: 50,
+            maxClusterRadius: IS_MOBILE ? 40 : 50,
             spiderfyOnMaxZoom: true,
+            disableClusteringAtZoom: 16,
         });
         map.addLayer(markerCluster);
     } else {
@@ -95,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =================================================================
-       5. KONFIGURASAUN TIPU
+       6. KONFIGURASAUN TIPU
        ================================================================= */
     const TIPO_CONFIG = {
         "TurismuRelijiozu": { color: "#9c27b0", icon: "fa-church"   },
@@ -126,24 +139,24 @@ document.addEventListener("DOMContentLoaded", function () {
     function makeTipoIcon(tipo, isNearest) {
         const cfg = getTipoConfig(tipo);
         const cls = "tl-marker-pin" + (isNearest ? " is-nearest" : "");
+        const size = IS_MOBILE ? 30 : 34;
         return L.divIcon({
             className: "tl-marker-wrapper",
             html: '<div class="' + cls + '" style="background:' + cfg.color + ';">' +
                   '<i class="fas ' + cfg.icon + '"></i></div>',
-            iconSize: [34, 34],
-            iconAnchor: [17, 34],
-            popupAnchor: [0, -32],
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size],
+            popupAnchor: [0, -size + 2],
         });
     }
 
     /* =================================================================
-       6. ESTADU & KONFIGURASAUN
+       7. ESTADU
        ================================================================= */
     let currentPosition   = null;
     let currentMarker     = null;
     let accuracyCircle    = null;
     let routeControl      = null;
-    let destinationMarker = null;
     let allPlaces         = [];
     let placeMarkers      = {};
     let activeFilter      = "all";
@@ -156,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     /* =================================================================
-       7. UTILITÁRIU
+       8. UTILITÁRIU
        ================================================================= */
     function escapeQuotes(str) {
         return String(str || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
@@ -211,22 +224,35 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =================================================================
-       8. SAFE OPEN POPUP — ATU LABELE TAKA KONTROLU GPS
+       9. SAFE OPEN POPUP
        ================================================================= */
     function safeOpenPopup(marker) {
         if (!marker) return;
         const popup = marker.getPopup();
         if (popup) {
-            popup.options.autoPan = true;
-            // Fo espasu 120px iha leten (ba botão GPS) no 80px iha okos
-            popup.options.autoPanPaddingTopLeft     = L.point(40, 140);
-            popup.options.autoPanPaddingBottomRight = L.point(40, 80);
+            popup.options.autoPan = !IS_MOBILE;
+            if (!IS_MOBILE) {
+                popup.options.autoPanPaddingTopLeft     = L.point(40, 140);
+                popup.options.autoPanPaddingBottomRight = L.point(40, 80);
+            }
         }
         marker.openPopup();
+
+        if (IS_MOBILE) {
+            setTimeout(function () {
+                const popupEl = document.querySelector(".leaflet-popup");
+                if (popupEl) {
+                    const rect = popupEl.getBoundingClientRect();
+                    if (rect.top < 80) {
+                        map.panBy([0, 80], { animate: true });
+                    }
+                }
+            }, 100);
+        }
     }
 
     /* =================================================================
-       9. POPUP 1 — MARKER POPUP HO 4 MODU
+       10. POPUP HTML — BOTÃO DETALLU DEIT (la iha rota)
        ================================================================= */
     function buildPopupHTML(place, destLatLng, routeInfo) {
         const cfg = getTipoConfig(place.type);
@@ -322,8 +348,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const desc = place.observation || place.description || "";
         const descHTML = desc ? '<p class="tl-popup__desc">' + desc + '</p>' : '';
-        const safeName = escapeQuotes(place.name);
-        const detailUrl = "/mapa/" + place.id + "/";
+
+        // ⭐ URL DETALLU tuir urls.py: /mapa/detalhe/<id>/
+        const detailUrl = '/mapa/detalhe/' + place.id + '/';
 
         return '' +
             '<div class="tl-popup">' +
@@ -341,17 +368,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     descHTML +
                     travelModesHTML +
                     '<div class="tl-popup__img-wrap">' + imgHTML + overlayHTML + '</div>' +
-                    '<button type="button" class="tl-popup__btn-route-full" ' +
-                        'onclick="window.tlStartRoute(' + place.latitude + ',' + place.longitude + ',\'' + safeName + '\')">' +
-                        '<i class="fas fa-route"></i> Rota ba ne\'e' +
-                    '</button>' +
-                    '<a class="tl-popup__btn-detail-link" href="' + detailUrl + '">Haree detallu kompletu →</a>' +
+                    /* ⭐ BOTÃO DETALLU DEIT */
+                    '<a class="tl-popup__btn-full" href="' + detailUrl + '">' +
+                        '<i class="fas fa-info-circle"></i> Haree Detallu' +
+                    '</a>' +
                 '</div>' +
             '</div>';
     }
 
     /* =================================================================
-       10. DETEKTA LOKALIZASAUN
+       11. DETEKTA LOKALIZASAUN
        ================================================================= */
     function locateMe() {
         if (!navigator.geolocation) { alert("Browser la suporta GPS."); return; }
@@ -376,7 +402,7 @@ document.addEventListener("DOMContentLoaded", function () {
                               'border-radius:50%;box-shadow:0 0 6px #0d6efd;"></div>',
                         iconSize: [16, 16], iconAnchor: [8, 8],
                     }),
-                }).addTo(map).bindPopup("Ita-nia lokalizasaun atual");
+                }).addTo(map);
 
                 accuracyCircle = L.circle(currentPosition, {
                     radius: accuracy, color: "#0d6efd",
@@ -384,7 +410,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }).addTo(map);
 
                 map.setView(currentPosition, 13);
-                currentMarker.openPopup();
                 updateDistancesFromUser();
             },
             function (error) {
@@ -401,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (gpsBtn) gpsBtn.addEventListener("click", locateMe);
 
     /* =================================================================
-       11. UPDATE DISTÁNSIA HOTU
+       12. UPDATE DISTÁNSIA
        ================================================================= */
     function updateDistancesFromUser() {
         if (!currentPosition) return;
@@ -429,7 +454,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =================================================================
-       12. RENDER LISTA NEAREST
+       13. RENDER LISTA NEAREST
        ================================================================= */
     function renderNearestList(sortedPlaces) {
         if (!nearestList) return;
@@ -476,7 +501,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =================================================================
-       13. OPEN PLACE WITH ROUTE
+       14. OPEN PLACE WITH ROUTE (ba kalkula distánsia)
        ================================================================= */
     function openPlaceWithRoute(place) {
         const marker = placeMarkers[place.id];
@@ -485,14 +510,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const destLatLng = marker.getLatLng();
         map.setView(destLatLng, 15);
         marker.setPopupContent(buildPopupHTML(place, destLatLng, null));
-        safeOpenPopup(marker); // ⬅️ Uza safe open
+        safeOpenPopup(marker);
 
         if (!currentPosition) return;
         calculateRouteForPlace(place, destLatLng);
     }
 
     /* =================================================================
-       14. CALCULATE ROUTE FOR PLACE
+       15. CALCULATE ROUTE (kalkula distánsia/tempu deit — la hatudu rota)
        ================================================================= */
     function calculateRouteForPlace(place, destLatLng) {
         if (!L.Routing || !currentPosition) return;
@@ -543,27 +568,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 marker.setPopupContent(buildPopupHTML(place, destLatLng, {
                     roadMeters: roadMeters, totalSeconds: totalSeconds, times: times,
                 }));
-                safeOpenPopup(marker); // ⬅️ Uza safe open
+                safeOpenPopup(marker);
             }
         });
 
         routeControl.on("routingerror", function () {
             if (infoRoad) infoRoad.textContent = "--";
             if (infoTime) infoTime.textContent = "--";
-            if (marker) {
-                marker.setPopupContent(
-                    '<div class="tl-popup"><div class="tl-popup__body">' +
-                        '<h3 class="tl-popup__place-title">' + (place.name || "-") + '</h3>' +
-                        '<div class="tl-popup__loc text-danger"><i class="fas fa-exclamation-triangle"></i> Rota la hetan.</div>' +
-                    '</div></div>'
-                );
-                safeOpenPopup(marker);
-            }
         });
     }
 
     /* =================================================================
-       15. BOTÃO NEAREST
+       16. BOTÃO NEAREST
        ================================================================= */
     if (nearestBtn) {
         nearestBtn.addEventListener("click", function () {
@@ -583,29 +599,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =================================================================
-       16. SHOW ROUTE / HAMÓS ROTA
+       17. HAMÓS ROTA / PAINEL
        ================================================================= */
-    function showRoute(destination, placeName) {
-        if (!currentPosition) { alert("Klik uluk \"GPS Hau\"."); return; }
-        if (!L.Routing) { alert("Plugin rota la disponivel."); return; }
-        const place = allPlaces.find(function (p) {
-            return p.name === placeName ||
-                   (Math.abs(p.latitude - destination.lat) < 0.0001 && Math.abs(p.longitude - destination.lng) < 0.0001);
-        });
-        if (place) calculateRouteForPlace(place, destination);
-    }
-
-    window.tlStartRoute = function (destLat, destLng, destName) {
-        const place = allPlaces.find(function (p) {
-            return Math.abs(p.latitude - destLat) < 0.0001 && Math.abs(p.longitude - destLng) < 0.0001;
-        });
-        if (place) calculateRouteForPlace(place, L.latLng(destLat, destLng));
-        else showRoute(L.latLng(destLat, destLng), destName);
-    };
-
     function clearRoute() {
         if (routeControl) { map.removeControl(routeControl); routeControl = null; }
-        if (destinationMarker) { map.removeLayer(destinationMarker); destinationMarker = null; }
         if (infoDest) infoDest.textContent = "--";
         if (infoStraight) infoStraight.textContent = "--";
         if (infoRoad) infoRoad.textContent = "--";
@@ -619,25 +616,100 @@ document.addEventListener("DOMContentLoaded", function () {
     if (closeNearestBtn) closeNearestBtn.addEventListener("click", function () { if (nearestPanel) nearestPanel.classList.remove("show"); });
 
     /* =================================================================
-       17. FULLSCREEN
+       18. FULLSCREEN — NAKONU LAYAR (Desktop + Mobile + iOS)
        ================================================================= */
-    if (fullscreenBtn) {
+    function getFullscreenEl() {
+        return document.fullscreenElement ||
+               document.webkitFullscreenElement ||
+               document.mozFullScreenElement ||
+               document.msFullscreenElement;
+    }
+
+    function isFullscreenActive() {
+        return !!getFullscreenEl() ||
+               (mapContainer && mapContainer.classList.contains("map-fullscreen-fallback"));
+    }
+
+    function enterFullscreen(el) {
+        if (el.requestFullscreen) return el.requestFullscreen({ navigationUI: "hide" });
+        if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+        if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
+        if (el.msRequestFullscreen) return el.msRequestFullscreen();
+        return Promise.reject(new Error("Fullscreen API la suporta."));
+    }
+
+    function exitFullscreen() {
+        if (document.exitFullscreen) return document.exitFullscreen();
+        if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+        if (document.mozCancelFullScreen) return document.mozCancelFullScreen();
+        if (document.msExitFullscreen) return document.msExitFullscreen();
+        return Promise.reject(new Error("Exit fullscreen la suporta."));
+    }
+
+    function applyFullscreenFallback() {
+        if (!mapContainer) return;
+        mapContainer.classList.add("map-fullscreen-fallback");
+        document.body.classList.add("map-fullscreen-active");
+        if (fullscreenBtn) fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        setTimeout(function () { if (map) map.invalidateSize(); }, 300);
+    }
+
+    function removeFullscreenFallback() {
+        if (!mapContainer) return;
+        mapContainer.classList.remove("map-fullscreen-fallback");
+        document.body.classList.remove("map-fullscreen-active");
+        if (fullscreenBtn) fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        setTimeout(function () { if (map) map.invalidateSize(); }, 300);
+    }
+
+    if (fullscreenBtn && mapContainer) {
         fullscreenBtn.addEventListener("click", function () {
-            const container = document.getElementById("map-container");
-            if (!container) return;
-            if (!document.fullscreenElement) {
-                (container.requestFullscreen || container.webkitRequestFullscreen).call(container);
-                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
-            } else {
-                (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+            if (isFullscreenActive()) {
+                if (getFullscreenEl()) {
+                    exitFullscreen().catch(function () { removeFullscreenFallback(); });
+                } else {
+                    removeFullscreenFallback();
+                }
+                return;
             }
-            setTimeout(function () { map.invalidateSize(); }, 300);
+
+            enterFullscreen(mapContainer)
+                .then(function () {
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                    setTimeout(function () { map.invalidateSize(); }, 300);
+                })
+                .catch(function (err) {
+                    console.warn("Fullscreen API la suporta, uza fallback:", err);
+                    applyFullscreenFallback();
+                });
+        });
+
+        ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"].forEach(function (evt) {
+            document.addEventListener(evt, function () {
+                const fsEl = getFullscreenEl();
+                if (fsEl) {
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                    if (mapContainer) mapContainer.classList.remove("map-fullscreen-fallback");
+                    document.body.classList.add("map-fullscreen-active");
+                } else {
+                    if (!mapContainer || !mapContainer.classList.contains("map-fullscreen-fallback")) {
+                        fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                        document.body.classList.remove("map-fullscreen-active");
+                    }
+                }
+                setTimeout(function () { if (map) map.invalidateSize(); }, 300);
+            });
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && mapContainer && mapContainer.classList.contains("map-fullscreen-fallback")) {
+                removeFullscreenFallback();
+            }
         });
     }
 
     /* =================================================================
-       18. FILTRU
+       19. FILTRU
        ================================================================= */
     function applyFilter(tipo) {
         activeFilter = tipo;
@@ -680,7 +752,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     /* =================================================================
-       19. KARREGA DADUS HUSI API
+       20. KARREGA DADUS
        ================================================================= */
     fetch(API_URL, { headers: { "Accept": "application/json" } })
         .then(function (response) {
@@ -706,13 +778,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 const destLatLng = L.latLng(lat, lng);
                 const marker = L.marker(destLatLng, { icon: makeTipoIcon(place.type) });
 
-                // ⭐ AUTO PAN PADDING — labele taka kontrolu
                 marker.bindPopup(buildPopupHTML(place, destLatLng, null), {
-                    maxWidth: 280,
+                    maxWidth: IS_MOBILE ? 280 : 280,
+                    minWidth: IS_MOBILE ? 240 : 260,
                     className: "tl-popup-wrap",
-                    autoPan: true,
+                    autoPan: !IS_MOBILE,
                     autoPanPaddingTopLeft:     L.point(40, 140),
                     autoPanPaddingBottomRight: L.point(40, 80),
+                    closeButton: true,
                 });
 
                 markerCluster.addLayer(marker);
@@ -730,11 +803,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(function (error) {
             console.error("Erru API:", error);
             if (mapCountText) mapCountText.textContent = "0 fatin";
-            alert("La konsege karrega dadus turizmu. Verifika URL API no internet.");
+            alert("La konsege karrega dadus turizmu.");
         });
 
     /* =================================================================
-       20. RESIZE & EXPOSE GLOBAL
+       21. RESIZE & EXPOSE
        ================================================================= */
     setTimeout(function () { map.invalidateSize(); }, 300);
     window.addEventListener("resize", function () {
