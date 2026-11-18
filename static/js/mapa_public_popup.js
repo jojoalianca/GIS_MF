@@ -1,13 +1,15 @@
 /* =====================================================================
-   MAPA PUBLIC — POPUP MODERNU, MARKER TUIR TIPU, ROTA, KONTAJEN
+   MAPA PUBLIC POPUP.JS — KOMPLETU FINAL
+   Detail URL: /mapa/detalhe/<id>/
+   Botão Rota hasai ona
    ===================================================================== */
 
 (function () {
     'use strict';
 
-    /* -----------------------------------------------------------------
+    /* =================================================================
        1. KONFIGURASAUN TIPU
-       ----------------------------------------------------------------- */
+       ================================================================= */
     var TIPO_CONFIG = {
         'TurismuRelijiozu': { color: '#9c27b0', icon: 'fa-church'   },
         'TurismoRelijiozu': { color: '#9c27b0', icon: 'fa-church'   },
@@ -15,18 +17,31 @@
         'TurismuNatural':   { color: '#4caf50', icon: 'fa-mountain' },
         'TurismuIstoriku':  { color: '#795548', icon: 'fa-monument' },
         'TurismuEventura':  { color: '#f44336', icon: 'fa-hiking'   },
+        'TurismuEkologiku': { color: '#20a39e', icon: 'fa-leaf'     },
         'default':          { color: '#607d8b', icon: 'fa-leaf'     }
     };
 
-    function getTipoConfig(tipo) {
-        if (!tipo) return TIPO_CONFIG.default;
-        var key = String(tipo).replace(/\s+/g, '');
-        return TIPO_CONFIG[key] || TIPO_CONFIG.default;
+    function normalizeType(tipo) {
+        return String(tipo || '').trim().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, '');
     }
 
-    /* -----------------------------------------------------------------
+    function getTipoConfig(tipo) {
+        var key = normalizeType(tipo);
+        if (key.indexOf('relijiozu') !== -1) return TIPO_CONFIG['TurismuRelijiozu'];
+        if (key.indexOf('kultural')  !== -1) return TIPO_CONFIG['TurismuKultural'];
+        if (key.indexOf('natural')   !== -1) return TIPO_CONFIG['TurismuNatural'];
+        if (key.indexOf('istoriku')  !== -1) return TIPO_CONFIG['TurismuIstoriku'];
+        if (key.indexOf('eventura')  !== -1 || key.indexOf('aventura') !== -1)
+                                              return TIPO_CONFIG['TurismuEventura'];
+        if (key.indexOf('ekologiku') !== -1) return TIPO_CONFIG['TurismuEkologiku'];
+        return TIPO_CONFIG.default;
+    }
+
+    /* =================================================================
        2. ICON MARKER
-       ----------------------------------------------------------------- */
+       ================================================================= */
     function makeTipoIcon(tipo, isNearest) {
         var cfg = getTipoConfig(tipo);
         var cls = 'tl-marker-pin' + (isNearest ? ' is-nearest' : '');
@@ -40,49 +55,89 @@
         });
     }
 
-    /* -----------------------------------------------------------------
-       3. POPUP HTML
-       ----------------------------------------------------------------- */
+    /* =================================================================
+       3. UTILITÁRIU
+       ================================================================= */
     function escapeQuotes(str) {
         return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
+    function getPointId(p) {
+        return p.id || p.pk || null;
+    }
+    function getPointName(p) {
+        return p.naran || p.name || p.titulo || 'Sem naran';
+    }
+    function getPointType(p) {
+        return p.tipo || p.type || 'Turizmu';
+    }
+    function getPointImage(p) {
+        if (p.image_url) return p.image_url;
+        if (Array.isArray(p.images) && p.images[0] && p.images[0].url) return p.images[0].url;
+        return null;
+    }
+    function getPointDesc(p) {
+        return p.Obs || p.observation || p.description || '';
+    }
+    function getPointLoc(p) {
+        var muni = p.municipality || '';
+        var vill = p.village || '';
+        if (typeof muni === 'object' && muni.name) muni = muni.name;
+        if (typeof vill === 'object' && vill.name) vill = vill.name;
+        var parts = [muni, vill].filter(Boolean);
+        return parts.length ? parts.join(' › ') : 'Timor-Leste';
+    }
+    function getDetailUrl(p) {
+        var id = getPointId(p);
+        if (!id) return '#';
+        if (p.detail_url) return p.detail_url;
+        // ⭐ URL tuir urls.py: /mapa/detalhe/<int:pk>/
+        return '/mapa/detalhe/' + id + '/';
+    }
 
+    /* =================================================================
+       4. POPUP HTML — BOTÃO DETALLU DEIT
+       ================================================================= */
     function buildPopupHTML(point) {
-        var cfg = getTipoConfig(point.tipo);
-        var img = point.image_url
-            ? '<img src="' + point.image_url + '" class="tl-popup__img" alt="' + (point.naran || '') + '">'
+        var cfg      = getTipoConfig(getPointType(point));
+        var imgUrl   = getPointImage(point);
+        var name     = getPointName(point);
+        var type     = getPointType(point);
+        var loc      = getPointLoc(point);
+        var desc     = getPointDesc(point);
+        var detailUrl= getDetailUrl(point);
+        var safeName = escapeQuotes(name);
+
+        var img = imgUrl
+            ? '<img src="' + imgUrl + '" class="tl-popup__img" alt="' + safeName + '">'
             : '<div class="tl-popup__img tl-popup__img--empty"><i class="fas fa-camera"></i></div>';
 
-        var loc = [point.municipality, point.village].filter(Boolean).join(' › ') || 'Timor-Leste';
-        var safeName = escapeQuotes(point.naran);
+        var descHTML = desc
+            ? '<p class="tl-popup__desc">' + desc + '</p>'
+            : '';
 
         return '' +
             '<div class="tl-popup">' +
                 img +
                 '<div class="tl-popup__body">' +
                     '<span class="tl-popup__type" style="background:' + cfg.color + ';">' +
-                        '<i class="fas ' + cfg.icon + '"></i> ' + (point.tipo || 'Turizmu') +
+                        '<i class="fas ' + cfg.icon + '"></i> ' + type +
                     '</span>' +
-                    '<h3 class="tl-popup__title">' + (point.naran || 'Sem naran') + '</h3>' +
+                    '<h3 class="tl-popup__title">' + name + '</h3>' +
                     '<div class="tl-popup__loc">' +
                         '<i class="fas fa-map-marker-alt"></i> ' + loc +
                     '</div>' +
-                    '<div class="tl-popup__actions">' +
-                        '<button type="button" class="tl-popup__btn tl-popup__btn--route" ' +
-                            'onclick="tlStartRoute(' + point.lat + ',' + point.lng + ',\'' + safeName + '\')">' +
-                            '<i class="fas fa-route"></i> Rota' +
-                        '</button>' +
-                        '<a class="tl-popup__btn tl-popup__btn--detail" href="/mapa/' + point.id + '/">' +
-                            '<i class="fas fa-info-circle"></i> Detallu' +
-                        '</a>' +
-                    '</div>' +
+                    descHTML +
+                    /* ⭐ BOTÃO DETALLU DEIT */
+                    '<a class="tl-popup__btn-full" href="' + detailUrl + '">' +
+                        '<i class="fas fa-info-circle"></i> Haree Detallu' +
+                    '</a>' +
                 '</div>' +
             '</div>';
     }
 
-    /* -----------------------------------------------------------------
-       4. KONTAJEN
-       ----------------------------------------------------------------- */
+    /* =================================================================
+       5. KONTAJEN
+       ================================================================= */
     function updateVisibleCount(count, isFiltered) {
         var badge = document.getElementById('map-count-badge');
         var text  = document.getElementById('map-count-text');
@@ -96,133 +151,28 @@
     }
 
     function recountFromCluster() {
-        if (typeof markerCluster === 'undefined' || !markerCluster) return 0;
+        var cluster = window.tlMarkerCluster ||
+                      (typeof markerCluster !== 'undefined' ? markerCluster : null);
+        var m = window.tlMap || (typeof map !== 'undefined' ? map : null);
+        if (!cluster || !m) return 0;
         var visible = 0;
-        markerCluster.eachLayer(function (m) {
-            if (map.hasLayer(m)) visible++;
+        cluster.eachLayer(function (layer) {
+            if (m.hasLayer(layer)) visible++;
         });
         return visible;
     }
 
-    /* -----------------------------------------------------------------
-       5. ROTA
-       ----------------------------------------------------------------- */
-    var routingControl = null;
-
-    window.tlStartRoute = function (destLat, destLng, destName) {
-        var currentUser = (typeof userLatLng !== 'undefined' && userLatLng)
-            ? userLatLng : (window.userLatLng || null);
-
-        if (!currentUser) {
-            alert('Klik "GPS Hau" uluk atu hatene ita-nia fatin.');
-            return;
-        }
-        if (!map) return;
-
-        if (routingControl) {
-            map.removeControl(routingControl);
-            routingControl = null;
-        }
-
-        routingControl = L.Routing.control({
-            waypoints: [
-                L.latLng(currentUser.lat, currentUser.lng),
-                L.latLng(destLat, destLng)
-            ],
-            router: L.Routing.osrmv1({
-                serviceUrl: 'https://router.project-osrm.org/route/v1'
-            }),
-            lineOptions: {
-                styles: [{ color: '#0d6efd', weight: 6, opacity: 0.85 }]
-            },
-            addWaypoints: false,
-            draggableWaypoints: false,
-            fitSelectedRoutes: true,
-            show: false,
-            createMarker: function () { return null; }
-        }).addTo(map);
-
-        routingControl.on('routesfound', function (e) {
-            var route = e.routes[0];
-            var distKm = (route.summary.totalDistance / 1000).toFixed(1);
-            var mins   = Math.round(route.summary.totalTime / 60);
-
-            var destEl = document.getElementById('info-dest');
-            var roadEl = document.getElementById('info-road');
-            var timeEl = document.getElementById('info-time');
-            var strEl  = document.getElementById('info-straight');
-
-            if (destEl) destEl.textContent = destName;
-            if (roadEl) roadEl.textContent = distKm + ' km';
-            if (timeEl) timeEl.textContent =
-                mins >= 60
-                    ? Math.floor(mins / 60) + 'h ' + (mins % 60) + 'min'
-                    : mins + ' min';
-
-            var straight = map.distance(
-                L.latLng(currentUser.lat, currentUser.lng),
-                L.latLng(destLat, destLng)
-            ) / 1000;
-            if (strEl) strEl.textContent = straight.toFixed(1) + ' km';
-
-            var panel = document.getElementById('route-panel');
-            if (panel) panel.classList.add('show');
-
-            var clr = document.getElementById('clear-route');
-            if (clr) clr.style.display = 'flex';
-
-            map.closePopup();
-        });
-
-        routingControl.on('routingerror', function () {
-            alert('La konsege kalkula rota. Verifika internet.');
-        });
-    };
-
-    /* -----------------------------------------------------------------
-       6. LISTA FATIN BESIK LIU
-       ----------------------------------------------------------------- */
-    window.tlShowNearest = function (list) {
-        var container = document.getElementById('nearest-list');
-        if (!container) return;
-
-        if (!list || !list.length) {
-            container.innerHTML = '<div class="p-3 text-muted small text-center">La hetan fatin.</div>';
-            return;
-        }
-
-        var html = '';
-        list.forEach(function (it) {
-            var cfg = getTipoConfig(it.tipo);
-            html +=
-                '<div class="nearest-item" onclick="tlStartRoute(' + it.lat + ',' + it.lng + ',\'' +
-                    escapeQuotes(it.naran) + '\')" style="cursor:pointer;">' +
-                    '<span class="nearest-dot" style="background:' + cfg.color + ';">' +
-                        '<i class="fas ' + cfg.icon + '"></i>' +
-                    '</span>' +
-                    '<div class="nearest-info">' +
-                        '<div class="nearest-name">' + (it.naran || '-') + '</div>' +
-                        '<div class="nearest-meta">' + it.distance_km + ' km · ' + (it.tipo || '') + '</div>' +
-                    '</div>' +
-                '</div>';
-        });
-        container.innerHTML = html;
-
-        var panel = document.getElementById('nearest-panel');
-        if (panel) panel.classList.add('show');
-    };
-
-    /* -----------------------------------------------------------------
-       7. EXPOSE BA GLOBAL
-       ----------------------------------------------------------------- */
+    /* =================================================================
+       6. EXPOSE BA GLOBAL
+       ================================================================= */
     window.tlUpdateVisibleCount = updateVisibleCount;
     window.tlRecountFromCluster = recountFromCluster;
     window.tlMakeTipoIcon        = makeTipoIcon;
     window.tlBuildPopupHTML      = buildPopupHTML;
 
-    /* -----------------------------------------------------------------
-       8. HOOK FILTRU & RESET
-       ----------------------------------------------------------------- */
+    /* =================================================================
+       7. HOOK FILTRU & RESET
+       ================================================================= */
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.filter-item').forEach(function (item) {
             item.addEventListener('click', function () {
@@ -243,7 +193,6 @@
             });
         }
 
-        // Inisial kontajen
         setTimeout(function () {
             var total = recountFromCluster();
             updateVisibleCount(total, false);
